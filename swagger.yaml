@@ -1,0 +1,277 @@
+openapi: 3.0.0
+
+info:
+  title: API Title
+  description: OpenAPI specification for kick-fear-in-the-butt-app
+  version: 1.0.0
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          maxLength: 26
+          example: Shreya
+        email:
+          type: string
+          example: shrea@gmail.com
+
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+
+  responses:
+    GetTokens:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: ey2ace6et98s1ncjasd
+                  refreshToken:
+                    type: string
+                    example: def50"200"75819e4748adef0566c3b41437f2b7e3
+    success:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: success
+
+    GetUserBudgetCopiedResponse:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Budget copied successfully
+
+    GetUserNetworthCopiedResponse:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Networth copied successfully
+
+    GetUserBudgetSourceDeleteResponse:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: source has been deleted
+
+    GetLoginResponse:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  _id:
+                    type: integer
+                    example: 643d4d03ae23825006d11937
+                  firstName:
+                    type: string
+                    example: John
+                  lastName:
+                    type: string
+                    example: wick
+                  profileImage:
+                    type: string
+                    example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
+                  type:
+                    type: number
+                    example: 2
+                  email:
+                    type: string
+                    example: john@gmail.com
+                  bio:
+                    type: string
+                    example: My best friend has a fur and a tail. Dogs are not our whole life, but they make our lives whole 🐶🙂
+                  address:
+                    type: string
+                    example: NY, Kellogg Rd New Hartford, 24
+                  latitude:
+                    type: string
+                    example: "21.1702"
+                  longitude:
+                    type: string
+                    example: "21.1702"
+                  auth:
+                    type: object
+                    properties:
+                      tokenType:
+                        type: string
+                        example: Bearer
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1LCJwaG9uZV9udW1iZXIiOiIrOTEgNzk5MDA1MzE3MCIsImZpcnN0X25hbWUiOiJ0ZXN0c2RzZHNkc2RzZHNkcyIsI
+                      refreshToken:
+                        type: string
+                        example: DGptc0miW9AXKCDl6H7RMMHlDcruUbPrwOowslSHiVOyYYJeFhRW1F2XKIrrfUCRIoG1lRMUfEQKSxX3TApl1Aw6641YkAGJhi6yQgr06PrZZuPFddYBvr
+                      expiresIn:
+                        type: integer
+                        example: 31536000
+    User:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  _id:
+                    type: integer
+                    example: 643d4d03ae23825006d11937
+                  firstName:
+                    type: string
+                    example: John
+                  lastName:
+                    type: string
+                    example: wick
+                  profileImage:
+                    type: string
+                    example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
+                  type:
+                    type: number
+                    example: 2
+                  email:
+                    type: string
+                    example: john@gmail.com
+                  isEmailVerified:
+                    type: boolean
+                    example: true
+                  bio:
+                    type: string
+                    example: My best friend has a fur and a tail. Dogs are not our whole life, but they make our lives whole 🐶🙂
+                  address:
+                    type: string
+                    example: NY, Kellogg Rd New Hartford, 24
+                  latitude:
+                    type: string
+                    example: "21.1702"
+                  longitude:
+                    type: string
+                    example: "21.1702"
+    UnauthorizedError:
+      description: |
+        - Invalid credentials
+        - Expired access or refresh token
+        - Revoked access or refresh token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthorized
+    NoContent:
+      description: |
+        - Empty body content
+      content:
+        application/json:
+          schema:
+            type: object
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            type: object
+    Conflict:
+      description: Account already registered with given email
+      content:
+        application/json:
+          schema:
+            type: object
+    PreconditionFailedException:
+      description: Account does not exist
+      content:
+        application/json:
+          schema:
+            type: object
+
+    GetForgotPasswordResponse:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: true
+              message:
+                type: string
+                example: Please check your email inbox. We sent you an email with reset password link.
+
+paths:
+  /auth/register:
+    post:
+      description: register
+      summary: Create new account
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: Dhruv
+                lastName:
+                  type: string
+                  example: Patel
+                email:
+                  type: string
+                  example: dhruv@mailinator.com
+                password:
+                  type: string
+                  example: passworD@123
+
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLoginResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "409":
+          $ref: "#/components/responses/Conflict"
