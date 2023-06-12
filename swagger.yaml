@@ -1,7 +1,7 @@
 openapi: 3.0.0
 
 info:
-  title: API Title
+  title: kick-fear-in-the-butt-app
   description: OpenAPI specification for kick-fear-in-the-butt-app
   version: 1.0.0
 
@@ -103,31 +103,13 @@ components:
                     example: 643d4d03ae23825006d11937
                   firstName:
                     type: string
-                    example: John
-                  lastName:
+                    example: Shreya Kamawala
+                  email:
                     type: string
-                    example: wick
+                    example: shrea@gmail.com
                   profileImage:
                     type: string
                     example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
-                  type:
-                    type: number
-                    example: 2
-                  email:
-                    type: string
-                    example: john@gmail.com
-                  bio:
-                    type: string
-                    example: My best friend has a fur and a tail. Dogs are not our whole life, but they make our lives whole 🐶🙂
-                  address:
-                    type: string
-                    example: NY, Kellogg Rd New Hartford, 24
-                  latitude:
-                    type: string
-                    example: "21.1702"
-                  longitude:
-                    type: string
-                    example: "21.1702"
                   auth:
                     type: object
                     properties:
@@ -242,8 +224,49 @@ components:
 paths:
   /auth/register:
     post:
-      description: register
       summary: Create new account
+      description: "[ termCondition => 0 - accepted 1- not accepted ]"
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Shreya Kamawala
+                email:
+                  type: string
+                  example: shrea@mailinator.com
+                password:
+                  type: string
+                  example: passworD@123
+                confirmPassword:
+                  type: string
+                  example: passworD@123
+                profileImage:
+                  type: string
+                  format: binary
+                termCondition:
+                  type: integer
+                  example: 0
+      responses:
+        "200":
+          $ref: "#/components/responses/GetLoginResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /auth/login:
+    post:
+      description: Login
+      summary: Login User
       tags:
         - Auth
       requestBody:
@@ -253,15 +276,9 @@ paths:
             schema:
               type: object
               properties:
-                firstName:
-                  type: string
-                  example: Dhruv
-                lastName:
-                  type: string
-                  example: Patel
                 email:
                   type: string
-                  example: dhruv@mailinator.com
+                  example: shrea@mailinator.com
                 password:
                   type: string
                   example: passworD@123
@@ -273,5 +290,135 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
-        "409":
-          $ref: "#/components/responses/Conflict"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedException"
+
+  /auth/logout:
+    post:
+      description: Logout from the application
+      summary: Logout
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                  example: ABKOIODUJIOSWNJC
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /auth/verify-otp:
+    post:
+        summary: Verify OTP
+        description: "[Type : 1 => registration otp  2 - forgot password otp ]"
+        tags:
+          - Auth
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  otp:
+                    type: string
+                    example: 1106
+                  email:
+                    type: string
+                    format: email
+                    example: shrea@mailinator.com
+                  type:
+                    type: integer
+                    example: 1
+        responses:
+          "200":
+            $ref: "#/components/responses/success"
+          "401":
+            $ref: "#/components/responses/UnauthorizedError"
+          "422":
+            $ref: "#/components/responses/UnprocessableEntity"
+
+
+  /auth/resend-otp:
+    post:
+        summary: Resend OTP
+        description: "[Type : 1 => registration otp  2 - forgot password otp ]"
+        tags:
+          - Auth
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    example: shrea@mailinator.com
+                  type:
+                    type: integer
+                    example: 1
+        responses:
+          "200":
+            $ref: "#/components/responses/success"
+          "401":
+            $ref: "#/components/responses/UnauthorizedError"
+          "422":
+            $ref: "#/components/responses/UnprocessableEntity"
+          "412":
+            $ref: "#/components/responses/PreconditionFailedException"
+
+  /fcm/token:
+    post:
+      description: |
+        - Register device token
+        <table style='border: 1px solid;width:auto;'>
+        <tr><td style='padding: 10px 10px 10px 10px;'><b>platform</b></td><td style='padding: 10px 10px 10px 10px;'><b>value</b></td></tr>
+        <tr><td style='padding: 10px 10px 10px 10px;'>iOS</td><td style='padding: 10px 10px 10px 10px;'>iOS</td></tr>
+        <tr><td style='padding: 10px 10px 10px 10px;'>Android</td><td style='padding: 10px 10px 10px 10px;'>Android</td></tr>
+        </table>
+      summary: Register device token
+      tags:
+        - FCM
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: def5020075819e4748adefe1f860566c3b41437f2b7e396db025b4d384e6b5db5911a3cfc22
+                deviceId:
+                  type: string
+                  example: e1f860566c3b41437f2b7e
+                platform:
+                  type: string
+                  example: iOS
+              required:
+                - token
+                - deviceId
+                - platform
+      responses:
+        "200":
+          $ref: "#/components/responses/GetTokens"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"

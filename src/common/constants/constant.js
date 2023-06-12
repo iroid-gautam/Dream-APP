@@ -23,4 +23,23 @@ module.exports = {
         }
         return url + (path ? `/${path}` : '');
     },
+
+    BCRYPT : {
+        SALT_ROUND: 12,
+    },
+    
+    JWT: {
+        SECRET: "kickfearinthebuttapp",
+        EXPIRES_IN: "1 YEAR",
+    },
+    
+    OTPTYPE : {
+        REGISTRATION_OTP : 1,
+        FORGOT_PASSWORD : 2
+    },
+
+    PLATFORM : {
+        ANDROID: "Android",
+        IOS: "iOS",
+    }
 };
