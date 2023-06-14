@@ -13,7 +13,7 @@ export const logo = () => {
  * @param {*} givenLength 
  * @returns 
  */
-export const randomStringGenerator = ( givenLength = 50 ) => {
+export const randomStringGenerator = ( givenLength = 70 ) => {
     const characters =
     givenLength > 10 ?
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" :
