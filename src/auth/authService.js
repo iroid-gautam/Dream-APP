@@ -189,7 +189,7 @@ class AuthService {
       throw new UnprocesssableEntityException("User not verified yet.");
     }
 
-    const checkPassword = checkExistEmail.isPasswordMatch(data.password);
+    const checkPassword = await checkExistEmail.isPasswordMatch(data.password);
 
     if (!checkPassword) {
       throw new BadRequestException("Invalid Credentials!");
@@ -221,6 +221,8 @@ class AuthService {
 
     return;
   }
+
+ 
 }
 
 export default AuthService;
