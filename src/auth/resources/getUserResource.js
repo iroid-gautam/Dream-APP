@@ -7,5 +7,6 @@ export default class GetUserResource {
       this.name = data.name;
       this.profileImage = data.profileImage ? baseUrl(data.profileImage) : null;
       this.email = data.email;
+      this.isVerified = data.isVerified;
     }
   }
