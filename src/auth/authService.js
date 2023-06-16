@@ -7,7 +7,7 @@ import {
   PreconditionFailedException,
   UnprocesssableEntityException,
 } from "../../src/common/error-exceptions";
-import { OTPTYPE, baseUrl } from "../common/constants/constant";
+import { OTPTYPE, baseUrl, JWT } from "../common/constants/constant";
 import Otp from "../../model/otp";
 import AuthHelper from "../common/auth.helper";
 import sendMail from "../common/middlewares/send-mail.middleware";
@@ -17,7 +17,8 @@ import AccessToken from "../../model/accessToken";
 import FcmToken from "../../model/fcmToken";
 import { logo } from "../common/helper";
 import GetUserResource from "./resources/getUserResource";
-const expiresInSeconds = 31536000;
+import jwt from "jsonwebtoken";
+const expiresInSeconds = 1800;
 
 
 class AuthService {
@@ -199,7 +200,8 @@ class AuthService {
         "User not exist with this email address."
       );
     } else if (checkExistEmail.isVerified != true) {
-      throw new UnprocesssableEntityException("User not verified yet.");
+      return { ...new GetUserResource(checkExistEmail) };
+      // throw new UnprocesssableEntityException("User not verified yet.");
     }
 
     const checkPassword = await checkExistEmail.isPasswordMatch(data.password);
@@ -248,10 +250,10 @@ class AuthService {
     return;
   }
 
-  // /**
-  //  * reset password
-  //  * @param {*} data
-  //  */
+  /**
+   * reset password
+   * @param {*} data
+   */
   // static async resetPassword(data) {
   //   const checkExistEmail = await commonService.findOne(User, { email: data });
 
@@ -259,16 +261,20 @@ class AuthService {
   //     throw new PreconditionFailedException("Email not exist");
   //   }
 
-  //   const encryptedEmail = await AuthHelper.tokenGenerator({
-  //     id: checkExistEmail._id,
-  //     email: checkExistEmail.email,
-  //   });
+    
+  //   // const encryptedEmail = await AuthHelper.tokenGenerator({
+  //   //   id: checkExistEmail._id,
+  //   //   email: checkExistEmail.email,
+  //   // });
+
+  //   const encryptedEmail = jwt.sign(
+  //     {
+  //       id: checkExistEmail._id,
+  //       email: checkExistEmail.email,
+  //     }, JWT.SECRET , { expiresIn: "2m" });
 
   //   const url = `${process.env.BASE_URL}:${process.env.PORT}/reset-password?email=${encryptedEmail}`;
 
-  //   console.log(url);
-
-  //   return;
   //   const emaildata = {
   //     url,
   //     name: checkExistEmail.name,
