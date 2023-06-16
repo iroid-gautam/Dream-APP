@@ -30,17 +30,7 @@ class AuthController {
 
     const verifyOtp = await AuthService.verifyOtp(data);
 
-    return res.send({
-      ... new GetUserResource(verifyOtp),
-      data: {
-        auth: {
-          tokenType: "Bearer",
-          accessToken: verifyOtp.token,
-          refreshToken: null,
-          expiresIn: expiresInSeconds,
-        },
-      },
-    });
+    return res.send({ data : verifyOtp });
   }
 
   /**
@@ -69,16 +59,16 @@ class AuthController {
 
     const login = await AuthService.login(data);
 
-    return res.send({
-      ... new GetUserResource(login),
-      data: {
-        auth: {
-          tokenType: "Bearer",
-          accessToken: login.token,
-          refreshToken: null,
-          expiresIn: expiresInSeconds,
-        },
-      },
+    return res.send({ data : login
+      // ... new GetUserResource(login),
+      // data: {
+      //   auth: {
+      //     tokenType: "Bearer",
+      //     accessToken: login.token,
+      //     refreshToken: null,
+      //     expiresIn: expiresInSeconds,
+      //   },
+      // },
     });
 
   }
@@ -98,6 +88,17 @@ class AuthController {
 
     res.send({ message : "Logout successfully."});
   }
+
+  // /**
+  //  * reset password
+  //  * @param {*} req 
+  //  * @param {*} res 
+  //  */
+  // static async resetPassword(req, res) {
+  //   await AuthService.resetPassword(req.body.email);
+
+  //   return res.send({ message : "Please check your email for instructions to reset your password."});
+  // }
 }
 
 export default AuthController;

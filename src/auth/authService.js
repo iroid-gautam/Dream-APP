@@ -7,7 +7,7 @@ import {
   PreconditionFailedException,
   UnprocesssableEntityException,
 } from "../../src/common/error-exceptions";
-import { OTPTYPE } from "../common/constants/constant";
+import { OTPTYPE, baseUrl } from "../common/constants/constant";
 import Otp from "../../model/otp";
 import AuthHelper from "../common/auth.helper";
 import sendMail from "../common/middlewares/send-mail.middleware";
@@ -15,6 +15,10 @@ import { randomStringGenerator } from "../common/helper";
 import moment from "moment";
 import AccessToken from "../../model/accessToken";
 import FcmToken from "../../model/fcmToken";
+import { logo } from "../common/helper";
+import GetUserResource from "./resources/getUserResource";
+const expiresInSeconds = 31536000;
+
 
 class AuthService {
   /**
@@ -108,7 +112,16 @@ class AuthService {
 
           await AuthHelper.storeAccessToken(registerUser, randomString);
           registerUser.token = token;
-          return registerUser;
+
+          const authenticate = {
+            tokenType: "Bearer",
+            accessToken: registerUser.token,
+            refreshToken: null,
+            expiresIn: expiresInSeconds,
+          };
+      
+          return { ...new GetUserResource(registerUser), authenticate };
+          // return registerUser;
         }
       } else if (OTPTYPE.FORGOT_PASSWORD == data.reqData.type) {
         const isForgotPasswordVerified = await commonService.updateOne(
@@ -204,25 +217,68 @@ class AuthService {
 
     await AuthHelper.storeAccessToken(checkExistEmail, randomString);
     checkExistEmail.token = token;
-    return checkExistEmail;
+
+    const authenticate = {
+      tokenType: "Bearer",
+      accessToken: checkExistEmail.token,
+      refreshToken: null,
+      expiresIn: expiresInSeconds,
+    };
+
+    return { ...new GetUserResource(checkExistEmail), authenticate };
   }
 
   /**
    * logout use data
-   * @param {*} data 
+   * @param {*} data
    */
   static async logOut(data) {
-
-    await commonService.updateOne(AccessToken, { token: data.authUser.jti }, { isRevoked: true });
+    await commonService.updateOne(
+      AccessToken,
+      { token: data.authUser.jti },
+      { isRevoked: true }
+    );
 
     if (data.reqData.deviceId) {
-      await commonService.deleteOne(FcmToken, { deviceId : data.reqData.deviceId });
+      await commonService.deleteOne(FcmToken, {
+        deviceId: data.reqData.deviceId,
+      });
     }
 
     return;
   }
 
- 
+  // /**
+  //  * reset password
+  //  * @param {*} data
+  //  */
+  // static async resetPassword(data) {
+  //   const checkExistEmail = await commonService.findOne(User, { email: data });
+
+  //   if (!checkExistEmail) {
+  //     throw new PreconditionFailedException("Email not exist");
+  //   }
+
+  //   const encryptedEmail = await AuthHelper.tokenGenerator({
+  //     id: checkExistEmail._id,
+  //     email: checkExistEmail.email,
+  //   });
+
+  //   const url = `${process.env.BASE_URL}:${process.env.PORT}/reset-password?email=${encryptedEmail}`;
+
+  //   console.log(url);
+
+  //   return;
+  //   const emaildata = {
+  //     url,
+  //     name: checkExistEmail.name,
+  //     subject: "Reset Password",
+  //     to: checkExistEmail.email,
+  //     // logo: logo()
+  //   };
+
+  //   await sendMail(emaildata, "reset-password-mail");
+  // }
 }
 
 export default AuthService;
