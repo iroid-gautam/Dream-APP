@@ -12,6 +12,6 @@ export default Joi.object().keys({
     confirmPassword: Joi.any().equal(Joi.ref('password'))
         .required()
         .label('Confirm password'),
-    profileImage: Joi.required(),
+    profileImage: Joi.string().optional(),
     termCondition: Joi.optional()
 });
