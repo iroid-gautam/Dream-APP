@@ -138,36 +138,15 @@ components:
                   _id:
                     type: integer
                     example: 643d4d03ae23825006d11937
-                  firstName:
+                  name:
                     type: string
-                    example: John
-                  lastName:
-                    type: string
-                    example: wick
+                    example: Shreya Kamawala
                   profileImage:
                     type: string
                     example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
-                  type:
-                    type: number
-                    example: 2
                   email:
                     type: string
-                    example: john@gmail.com
-                  isEmailVerified:
-                    type: boolean
-                    example: true
-                  bio:
-                    type: string
-                    example: My best friend has a fur and a tail. Dogs are not our whole life, but they make our lives whole 🐶🙂
-                  address:
-                    type: string
-                    example: NY, Kellogg Rd New Hartford, 24
-                  latitude:
-                    type: string
-                    example: "21.1702"
-                  longitude:
-                    type: string
-                    example: "21.1702"
+                    example: shrea@gmail.com
     UnauthorizedError:
       description: |
         - Invalid credentials
@@ -322,7 +301,7 @@ paths:
   /auth/verify-otp:
     post:
         summary: Verify OTP
-        description: "[Type : 1 => registration otp  2 - forgot password otp ]"
+        description: "[Type : 1 => registration otp ]"
         tags:
           - Auth
         requestBody:
@@ -354,7 +333,7 @@ paths:
   /auth/resend-otp:
     post:
         summary: Resend OTP
-        description: "[Type : 1 => registration otp  2 - forgot password otp ]"
+        description: "[Type : 1 => registration otp ]"
         tags:
           - Auth
         requestBody:
@@ -380,6 +359,33 @@ paths:
             $ref: "#/components/responses/UnprocessableEntity"
           "412":
             $ref: "#/components/responses/PreconditionFailedException"
+
+  /auth/reset-password:
+    post:
+        summary: Reset Password
+        tags:
+          - Auth
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    example: shrea@mailinator.com
+                required:
+                  - email
+        responses:
+          "200":
+            $ref: "#/components/responses/success"
+          "401":
+            $ref: "#/components/responses/UnauthorizedError"
+          "422":
+            $ref: "#/components/responses/UnprocessableEntity"
+
 
   /fcm/token:
     post:
@@ -422,3 +428,51 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
+
+  /user:
+    get:
+      summary: Get User
+      description: get login user detail
+      tags:
+        - User 
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          $ref: "#/components/responses/User"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    put:
+      summary: Edit User
+      description:  Edit User Detail
+      tags:
+        - User 
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Shreya Kamawala
+                email:
+                  type: string
+                  example: shrea@mailinator.com
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+
+
+       
+
