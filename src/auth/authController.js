@@ -14,6 +14,7 @@ class AuthController {
     const data = [];
     data.reqData = req.body;
     data.file = req.file;
+    console.log(data.file);
     const register = await AuthService.register(data);
 
     return res.send({ data: register });
@@ -89,16 +90,16 @@ class AuthController {
     res.send({ message : "Logout successfully."});
   }
 
-  // /**
-  //  * reset password
-  //  * @param {*} req 
-  //  * @param {*} res 
-  //  */
-  // static async resetPassword(req, res) {
-  //   await AuthService.resetPassword(req.body.email);
+  /**
+   * reset password
+   * @param {*} req 
+   * @param {*} res 
+   */
+  static async resetPassword(req, res) {
+    await AuthService.resetPassword(req.body.email);
 
-  //   return res.send({ message : "Please check your email for instructions to reset your password."});
-  // }
+    return res.send({ message : "Please check your email for instructions to reset your password."});
+  }
 }
 
 export default AuthController;

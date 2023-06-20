@@ -35,6 +35,10 @@ const userSchema = new Schema(
             required: false,
             default: false,
         },
+        resetToken: {
+            type: String,
+            allowNull: true,
+        },
     },
     {
         timestamps: {

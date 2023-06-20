@@ -254,37 +254,32 @@ class AuthService {
    * reset password
    * @param {*} data
    */
-  // static async resetPassword(data) {
-  //   const checkExistEmail = await commonService.findOne(User, { email: data });
+  static async resetPassword(data) {
+    const checkExistEmail = await commonService.findOne(User, { email: data });
 
-  //   if (!checkExistEmail) {
-  //     throw new PreconditionFailedException("Email not exist");
-  //   }
+    if (!checkExistEmail) {
+      throw new PreconditionFailedException("Email not exist");
+    }
 
-    
-  //   // const encryptedEmail = await AuthHelper.tokenGenerator({
-  //   //   id: checkExistEmail._id,
-  //   //   email: checkExistEmail.email,
-  //   // });
+    const encryptedEmail = jwt.sign(
+      {
+        id: checkExistEmail._id,
+        email: checkExistEmail.email,
+      }, JWT.SECRET , { expiresIn: expiresInSeconds });
 
-  //   const encryptedEmail = jwt.sign(
-  //     {
-  //       id: checkExistEmail._id,
-  //       email: checkExistEmail.email,
-  //     }, JWT.SECRET , { expiresIn: "2m" });
+    await commonService.updateOne(User, { _id : checkExistEmail._id }, { resetToken: encryptedEmail });
 
-  //   const url = `${process.env.BASE_URL}:${process.env.PORT}/reset-password?email=${encryptedEmail}`;
+    const url = `${process.env.BASE_URL}:${process.env.PORT}/reset-password?email=${encryptedEmail}`;
 
-  //   const emaildata = {
-  //     url,
-  //     name: checkExistEmail.name,
-  //     subject: "Reset Password",
-  //     to: checkExistEmail.email,
-  //     // logo: logo()
-  //   };
+    const emaildata = {
+      url : url,
+      name: checkExistEmail.name,
+      subject: "Reset Password",
+      to: checkExistEmail.email,
+    };
 
-  //   await sendMail(emaildata, "reset-password-mail");
-  // }
+    await sendMail(emaildata, "reset-password-mail");
+  }
 }
 
 export default AuthService;
