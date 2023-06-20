@@ -28,7 +28,7 @@ class AuthService {
    * @returns
    */
   static async register(data) {
-    const findUser = await commonService.findOne(User, { email: data.email });
+    const findUser = await commonService.findOne(User, { email: data.reqData.email });
 
     if (findUser) {
       throw new BadRequestException("Email already in use.");
