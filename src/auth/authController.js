@@ -14,7 +14,6 @@ class AuthController {
     const data = [];
     data.reqData = req.body;
     data.file = req.file;
-    console.log(data.file);
     const register = await AuthService.register(data);
 
     return res.send({ data: register });

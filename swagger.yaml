@@ -300,92 +300,90 @@ paths:
 
   /auth/verify-otp:
     post:
-        summary: Verify OTP
-        description: "[Type : 1 => registration otp ]"
-        tags:
-          - Auth
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  otp:
-                    type: string
-                    example: 1106
-                  email:
-                    type: string
-                    format: email
-                    example: shrea@mailinator.com
-                  type:
-                    type: integer
-                    example: 1
-        responses:
-          "200":
-            $ref: "#/components/responses/success"
-          "401":
-            $ref: "#/components/responses/UnauthorizedError"
-          "422":
-            $ref: "#/components/responses/UnprocessableEntity"
-
+      summary: Verify OTP
+      description: "[Type : 1 => registration otp ]"
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp:
+                  type: string
+                  example: 1106
+                email:
+                  type: string
+                  format: email
+                  example: shrea@mailinator.com
+                type:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
 
   /auth/resend-otp:
     post:
-        summary: Resend OTP
-        description: "[Type : 1 => registration otp ]"
-        tags:
-          - Auth
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  email:
-                    type: string
-                    format: email
-                    example: shrea@mailinator.com
-                  type:
-                    type: integer
-                    example: 1
-        responses:
-          "200":
-            $ref: "#/components/responses/success"
-          "401":
-            $ref: "#/components/responses/UnauthorizedError"
-          "422":
-            $ref: "#/components/responses/UnprocessableEntity"
-          "412":
-            $ref: "#/components/responses/PreconditionFailedException"
+      summary: Resend OTP
+      description: "[Type : 1 => registration otp ]"
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: shrea@mailinator.com
+                type:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedException"
 
   /auth/reset-password:
     post:
-        summary: Reset Password
-        tags:
-          - Auth
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  email:
-                    type: string
-                    format: email
-                    example: shrea@mailinator.com
-                required:
-                  - email
-        responses:
-          "200":
-            $ref: "#/components/responses/success"
-          "401":
-            $ref: "#/components/responses/UnauthorizedError"
-          "422":
-            $ref: "#/components/responses/UnprocessableEntity"
-
+      summary: Reset Password
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: shrea@mailinator.com
+              required:
+                - email
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
 
   /fcm/token:
     post:
@@ -434,7 +432,7 @@ paths:
       summary: Get User
       description: get login user detail
       tags:
-        - User 
+        - User
       security:
         - bearerAuth: []
       responses:
@@ -446,9 +444,9 @@ paths:
           $ref: "#/components/responses/UnprocessableEntity"
     put:
       summary: Edit User
-      description:  Edit User Detail
+      description: Edit User Detail
       tags:
-        - User 
+        - User
       security:
         - bearerAuth: []
       requestBody:
@@ -472,7 +470,26 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
 
-
-
-       
-
+  /user/updatePicture:
+    put:
+      summary: Edit profile picture
+      description: Edit User profile
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          $ref: "#/components/responses/success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"

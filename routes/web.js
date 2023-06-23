@@ -1,4 +1,6 @@
 import express from "express";
+import asyncWrap from "express-async-wrapper";
+import webController from "./web/webController";
 import { logo } from "../src/common/helper";
 import resetPasswordRoutes from "../src/resetPassword/reset-password.routes";
 
@@ -9,15 +11,7 @@ router.get("/changelogs", (req, res) => {
 });
 router.use("/reset-password", resetPasswordRoutes);
 
-// router.get("/reset-password", (req, res) => {
-//   return res.render("email_templates/reset-password-mail", { logo: logo() });
-// });
+router.get('/terms-condition', asyncWrap(webController.termsCondition))
+router.get('/privacy-policy', asyncWrap(webController.privacyPolicy))
 
-// router.get("/reset-password", (req, res) => {
-//   return res.render("resetPassword/index", { logo: logo() });
-// });
-
-// router.post("/reset-password", (req, res) => {
-//   return res.render("resetPassword/index", { logo: logo() });
-// });
 module.exports = router;

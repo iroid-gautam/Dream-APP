@@ -10,8 +10,7 @@ const router = express.Router();
 
 router.use("/auth", authRoutes);
 
-router.use("/user", authenticate,userRoutes);
-
+router.use("/user", authenticate, userRoutes);
 
 router.post(
     "/fcm/token",

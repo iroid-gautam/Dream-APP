@@ -43,6 +43,18 @@ class commonService {
 
         return result;
     }
+
+    /*
+     * @description : update any record in database by primary key
+     * @param {*} model 
+     * @param {*} id 
+     * @param {*} data 
+     * @returns 
+     */
+    static async updateById(model, id, data) {
+        const result = await model.findByIdAndUpdate(id, data, { new: true });
+        return result;
+    }
 }
 
 export default commonService;
