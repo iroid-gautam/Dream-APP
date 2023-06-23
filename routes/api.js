@@ -12,10 +12,8 @@ router.use("/auth", authRoutes);
 
 router.use("/user", authenticate, userRoutes);
 
-router.post(
-    "/fcm/token",
-    [authenticate, validator.body(storeFcmTokenDto)],
-    registerPushToken
-);
+router.use('/mentalState', authenticate, require('../src/mentalState/mentalStateRouter'));
+
+router.post("/fcm/token", [authenticate, validator.body(storeFcmTokenDto)], registerPushToken);
 
 export default router;

@@ -9,6 +9,8 @@ import routes from "./routes/index";
 import mongoConnection from "./model/connection";
 import "./src/common/config/jwt-strategy";
 
+import "./seeder/index";
+
 require("dotenv").config();
 
 const app = express();
@@ -33,7 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
-    return res.render("errors/500");
+  return res.render("errors/500");
 });
 
 app.use("/api/documentation", swagger);

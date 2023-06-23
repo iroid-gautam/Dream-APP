@@ -199,6 +199,53 @@ components:
               message:
                 type: string
                 example: Please check your email inbox. We sent you an email with reset password link.
+    Success:
+      description: |
+        - success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: success
+
+    ConflictError:
+      description: |
+        - ConflictError
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: conflict error
+
+    BadRequestError:
+      description: |
+        - bad request error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: bad request error
+
+    NotFoundError:
+      description: |
+        - NotFoundError
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Not Found
 
 paths:
   /auth/register:
@@ -216,16 +263,16 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Shreya Kamawala
+                  example: tushar parmar
                 email:
                   type: string
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
                 password:
                   type: string
-                  example: passworD@123
+                  example: password@123
                 confirmPassword:
                   type: string
-                  example: passworD@123
+                  example: password@123
                 profileImage:
                   type: string
                   format: binary
@@ -257,10 +304,10 @@ paths:
               properties:
                 email:
                   type: string
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
                 password:
                   type: string
-                  example: passworD@123
+                  example: password@123
 
       responses:
         "200":
@@ -317,7 +364,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
                 type:
                   type: integer
                   example: 1
@@ -345,7 +392,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
                 type:
                   type: integer
                   example: 1
@@ -374,7 +421,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
               required:
                 - email
       responses:
@@ -458,10 +505,10 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Shreya Kamawala
+                  example: tushar parmar
                 email:
                   type: string
-                  example: shrea@mailinator.com
+                  example: tushar@mailinator.com
       responses:
         "200":
           $ref: "#/components/responses/success"
@@ -493,3 +540,51 @@ paths:
           $ref: "#/components/responses/success"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+
+  # Mental state
+  /mentalState/emojis:
+    get:
+      summary: Get emojis listing
+      description: Emoji
+      tags:
+        - Mental State
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /mentalState/addScore:
+    post:
+      summary: Add your mood score
+      tags:
+        - Mental State
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emojiId:
+                  type: string
+                  example: 6454abfd803eb158f513b2b8
+                score:
+                  type: integer
+                  example: 1
+              required:
+                - emojiId
+                - score
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
