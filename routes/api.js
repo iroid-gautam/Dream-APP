@@ -9,11 +9,13 @@ import userRoutes from "../src/user/user.routes";
 const router = express.Router();
 
 router.use("/auth", authRoutes);
-
 router.use("/user", authenticate, userRoutes);
+router.post("/fcm/token", [authenticate, validator.body(storeFcmTokenDto)], registerPushToken);
 
 router.use('/mentalState', authenticate, require('../src/mentalState/mentalStateRouter'));
+router.use('/intention', authenticate, require('../src/myIntention/intentionRouter'));
 
-router.post("/fcm/token", [authenticate, validator.body(storeFcmTokenDto)], registerPushToken);
+router.use('/my', authenticate, require('../src/myMindBody&Inspiration/myRouter'));
+
 
 export default router;
