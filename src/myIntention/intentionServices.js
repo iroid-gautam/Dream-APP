@@ -36,11 +36,12 @@ class IntentionServices {
      */
     static async getIntention(auth, req, res) {
         const findInte = await commonService.findOne(MyIntention, { userId: auth });
-        if (findInte) {
+        // if (findInte) {
             return findInte
-        } else {
-            throw new NotFoundException("Intention not found")
-        }
+        // } else {
+        //     // throw new NotFoundException("Intention not found")
+        //     return res.send({ data: null })
+        // }
     }
 }
 

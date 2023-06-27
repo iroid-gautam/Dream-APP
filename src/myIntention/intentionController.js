@@ -21,7 +21,7 @@ class IntentionController {
      */
     static async getIntention(req, res) {
         const data = await IntentionServices.getIntention(req.user, req, res);
-        return res.send({ data: data });
+        return res.send({ data: data !== null ? data : null });
     }
 }
 
