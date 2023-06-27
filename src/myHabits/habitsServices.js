@@ -30,7 +30,7 @@ class HabitsServices {
                     goalId: goalId
                 });
 
-                return addhabit;
+                return { ...new SingleHabitResource(addhabit) }
             } else {
                 throw new NotFoundException("This goal is not found")
             }
@@ -152,6 +152,30 @@ class HabitsServices {
             throw new BadRequestException("please provide correct habitId")
         }
     }
+
+
+
+    // static async editHabit(id, data, req, res) {
+    //     const { name, frequency, description, startDate, goalId } = data;
+    //     if (mongoose.Types.ObjectId.isValid(id)) {
+    //         const findHabit = await commonService.findByPk(MyHabits, { _id: id });
+    //         if (findHabit) {
+    //             const editHabit = await commonService.updateById(MyHabits, findHabit._id, {
+    //                 name: name,
+    //                 frequency: frequency,
+    //                 description: description,
+    //                 startDate: startDate,
+    //                 goalId: goalId
+    //             });
+
+    //             return editHabit;
+    //         } else {
+    //             throw new NotFoundException('This habitId is not found')
+    //         }
+    //     } else {
+    //         throw new BadRequestException("please provide correct habitId")
+    //     }
+    // }
 }
 
 export default HabitsServices;

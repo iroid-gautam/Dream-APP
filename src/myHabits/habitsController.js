@@ -9,7 +9,7 @@ class HabitsController {
      */
     static async addHabits(req, res) {
         const data = await HabitsServices.addHabits(req.user._id, req.body, req, res);
-        return res.send({ message: "You have successfully saved this habit." })
+        return res.send({ message: "You have successfully saved this habit.", data })
     }
 
 
@@ -60,6 +60,17 @@ class HabitsController {
         const data = await HabitsServices.deleteHabits(req.params.id, req, res);
         return res.send({ message: "You have successfully deleted this habit." })
     }
+
+
+    /**
+     * @description: Edit habits
+     * @param {*} req 
+     * @param {*} res 
+     */
+    // static async editHabit(req, res) {
+    //     const data = await HabitsServices.editHabit(req.params.id, req.body, req, res);
+    //     return res.send({ message: "You have successfully updated thid habit." })
+    // }
 }
 
 export default HabitsController;
