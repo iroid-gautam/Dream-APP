@@ -16,6 +16,7 @@ router.use('/mentalState', authenticate, require('../src/mentalState/mentalState
 router.use('/intention', authenticate, require('../src/myIntention/intentionRouter'));
 
 router.use('/my', authenticate, require('../src/myMindBody&Inspiration/myRouter'));
-
+router.use('/habit', authenticate, require('../src/myHabits/habitsRouter'));
+router.use('/goal', authenticate, require('../src/myGoal/goalRouter'));
 
 export default router;

@@ -55,6 +55,31 @@ class commonService {
         const result = await model.findByIdAndUpdate(id, data, { new: true });
         return result;
     }
+
+    /*
+     * @description : total collection data find(20)
+     * @param {*} model 
+     * @param {*} id 
+     * @param {*} data 
+     * @returns 
+     */
+    static async totalDocuments(model, data) {
+        const result = await model.countDocuments(data);
+        return result;
+    }
+
+    /*
+     * @description : delete any record in database by primary key
+     * @param  {object} model : mongodb model
+     * @param  {object} pk : primary field of table
+     * @return {object} result : database result
+     */
+
+    static async deleteById(model, id) {
+        // console.log(id);
+        const result = await model.findByIdAndDelete(id);
+        return result;
+    }
 }
 
 export default commonService;

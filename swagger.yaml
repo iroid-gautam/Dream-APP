@@ -648,7 +648,6 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "404":
           $ref: "#/components/responses/NotFoundError"
-  
 
   /my/inspiration:
     get:
@@ -658,6 +657,223 @@ paths:
       security:
         - bearerAuth: []
 
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /habit:
+    post:
+      summary: Add My Habits
+      description: |
+        - frequency :-  0 => Daily || 1 => Weekly || 2 => Monthly
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Visit the gym at least 2x per week
+                frequency:
+                  type: integer
+                  example: 0
+                description:
+                  type: string
+                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                startDate:
+                  type: string
+                  example: 1687843361000
+                goalId:
+                  type: string
+                  example: 649938fa7a5889a5db62cbe3
+              required:
+                - name
+                - frequency
+                - description
+                - startDate
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /habit/{habitId}:
+    get:
+      summary: Get single habit
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: habitId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+    delete:
+      summary: Delete habit
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: habitId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+  /habit/markAsDone/{habitId}:
+    post:
+      summary: Mark As Done Habit
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: habitId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /habit/listing:
+    get:
+      summary: Get all habits listing
+      description: |
+        - frequency :- -1 => All || 0 => Daily || 1 => Weekly || 2 => Monthly
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+        - in: query
+          name: frequency
+          required: true
+          schema:
+            type: string
+            enum:
+              - -1
+              - 0
+              - 1
+              - 2
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /goal:
+    post:
+      deprecated: true
+      summary: Add My Goal
+      description: |
+        - frequency :-  0 => Short || 1 => Medium || 2 => Long
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Visit the gym at least 2x per week
+                type:
+                  type: integer
+                  example: 1
+                description:
+                  type: string
+                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                startDate:
+                  type: string
+                  example: 1687843361000
+                endDate:
+                  type: string
+                  example: 1687843361000
+                image:
+                  type: string
+                  format: binary
+                habitsId:
+                  type: array
+                  example: ['649938fa7a5889a5db62cbe3', '649938fa7a5889a5db62cbe3']
+
+              required:
+                - name
+                - type
+                - description
+                - startDate
+                - endDate
       responses:
         "200":
           $ref: "#/components/responses/Success"
