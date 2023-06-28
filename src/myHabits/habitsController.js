@@ -1,5 +1,5 @@
 import HabitsServices from "./habitsServices";
-
+import SearchHabitGoalResource from "./resources/searchResources";
 
 class HabitsController {
     /**
@@ -67,10 +67,23 @@ class HabitsController {
      * @param {*} req 
      * @param {*} res 
      */
-    // static async editHabit(req, res) {
-    //     const data = await HabitsServices.editHabit(req.params.id, req.body, req, res);
-    //     return res.send({ message: "You have successfully updated thid habit." })
-    // }
+    static async editHabit(req, res) {
+        const data = await HabitsServices.editHabit(req.params.id, req.body, req, res);
+        return res.send({ message: "You have successfully updated this habit." })
+    }
+
+
+
+    /**
+     * @description: Search habit
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async searchHabitFilter(req, res) {
+        const { data, meta } = await HabitsServices.searchHabitFilter(req.user._id, req.query, req.body, req, res);
+        return res.send({ data: new SearchHabitGoalResource(data), meta })
+    }
 }
 
 export default HabitsController;

@@ -735,7 +735,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-
     delete:
       summary: Delete habit
       tags:
@@ -760,6 +759,52 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
+    put:
+      summary: Edit habit
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: habitId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Visit the gym at least 2x per week
+                frequency:
+                  type: integer
+                  example: 0
+                description:
+                  type: string
+                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                startDate:
+                  type: string
+                  example: 1687843361000
+                goalId:
+                  type: string
+                  example: 649938fa7a5889a5db62cbe3
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
 
   /habit/markAsDone/{habitId}:
     post:
@@ -828,9 +873,51 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
+  /habit/searchHabit:
+    post:
+      summary: Search your habit
+      description: search habit
+      tags:
+        - My Habits
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Visit the gym 
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
   /goal:
     post:
-      deprecated: true
+      deprecated: false
       summary: Add My Goal
       description: |
         - frequency :-  0 => Short || 1 => Medium || 2 => Long
@@ -866,7 +953,8 @@ paths:
                   format: binary
                 habitsId:
                   type: array
-                  example: ['649938fa7a5889a5db62cbe3', '649938fa7a5889a5db62cbe3']
+                  example:
+                    ["649938fa7a5889a5db62cbe3", "649938fa7a5889a5db62cbe3"]
 
               required:
                 - name
@@ -874,10 +962,132 @@ paths:
                 - description
                 - startDate
                 - endDate
+                - image
+                - habitsId
       responses:
         "200":
           $ref: "#/components/responses/Success"
         "400":
           $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  
+  /goal/{goalId}:
+    get:
+      summary: Get single goal
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+    # delete:
+    #   summary: Delete Goal
+    #   tags:
+    #     - My Goal
+    #   security:
+    #     - bearerAuth: []
+    #   parameters:
+    #     - in: path
+    #       name: goalId
+    #       required: true
+    #       schema:
+    #         type: string
+    #         example: 63bd4dcff9e5e2f0107cb2f6
+
+    #   responses:
+    #     "200":
+    #       $ref: "#/components/responses/Success"
+    #     "400":
+    #       $ref: "#/components/responses/BadRequestError"
+    #     "401":
+    #       $ref: "#/components/responses/UnauthorizedError"
+    #     "404":
+    #       $ref: "#/components/responses/NotFoundError"
+
+
+  /goal/markAsDone/{goalId}:
+    post:
+      summary: Mark As Done Goal
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+  /goal/searchGoal:
+    post:
+      summary: Search your goal
+      description: search goal
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Implement a healthy sleep schedule
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
         "404":
           $ref: "#/components/responses/NotFoundError"

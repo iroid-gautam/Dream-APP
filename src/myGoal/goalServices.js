@@ -1,23 +1,155 @@
+import mongoose from "mongoose";
 import MyGoal from "../../model/myGoal";
 import commonService from "../../utils/commonServices";
+import { BadRequestException, NotFoundException } from "../common/error-exceptions"
+import GoalResource from "./resources/goalResource";
 
 class GoalServices {
-    static async addGoal(auth, data, req, res) {
+    /**
+     * @description: Add goal
+     * @param {*} auth 
+     * @param {*} file 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async addGoal(auth, file, data, req, res) {
         const { name, type, description, startDate, endDate, habitsId } = data;
-        // console.log(auth);
-        // console.log("data", data);
-        // console.log("habits :- ", data.habitsId.split(','));
-        // console.log("habits :- ", habitsId.split(','));
 
-        const insertGoal = await commonService.createOne(MyGoal, {
-            userId: auth,
-            name: name,
-            type: type,
-            description: description,
-            startDate: startDate,
-            endDate: endDate,
-            habitsId: habitsId.split(',')
+        const h = habitsId.split(',');
+
+        h.map(data => {
+            if (mongoose.Types.ObjectId.isValid(data)) {
+                return
+            } else {
+                throw new BadRequestException("Please provide correct habitId")
+            }
         })
+
+        if (file) {
+            const image = `goalImage/${file.filename}`;
+            const insertGoal = await commonService.createOne(MyGoal, {
+                userId: auth,
+                name: name,
+                type: type,
+                description: description,
+                startDate: startDate,
+                endDate: endDate,
+                image: image,
+                habitsId: habitsId.split(',')
+            });
+
+            return { ...new GoalResource(insertGoal) };
+        } else {
+            throw new BadRequestException("Please select image")
+        }
+    }
+
+
+
+    /**
+     * @description: Get single goal
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async getSingleGoal(id, req, res) {
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            const findGoal = await MyGoal.findById({ _id: id }).populate('habitsId');
+            if (findGoal) {
+                return { ...new GoalResource(findGoal) }
+            } else {
+                throw new NotFoundException('This goalId is not found')
+            }
+        } else {
+            throw new BadRequestException("please provide correct goalId")
+        }
+    }
+
+
+
+    /**
+     * @description: mark as done this goal
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async markAsDoneGoal(id, req, res) {
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            const findGoal = await commonService.findByPk(MyGoal, { _id: id });
+            if (findGoal) {
+                const updateStatus = await commonService.updateById(MyGoal, findGoal._id, {
+                    markDone: true
+                });
+                return updateStatus;
+            } else {
+                throw new NotFoundException('This goalId is not found')
+            }
+        } else {
+            throw new BadRequestException("please provide correct goalId")
+        }
+    }
+
+
+
+    /**
+     * @description: Delete goal
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async deleteGoal(id, req, res) {
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            const findGoal = await commonService.findByPk(MyGoal, { _id: id });
+            if (findGoal) {
+                const deleteHabit = await commonService.deleteById(MyGoal, findGoal._id);
+                return deleteHabit
+            } else {
+                throw new NotFoundException('This goalId is not found')
+            }
+        } else {
+            throw new BadRequestException("please provide correct goalId")
+        }
+    }
+
+
+
+    /**
+     * @description: Search goal
+     * @param {*} auth 
+     * @param {*} query 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async searchGoal(auth, query, data, req, res) {
+        try {
+            const page = parseInt(query.page) - 1 || 0;
+            const pageLimit = parseInt(query.limit) || 20;
+
+            const { name } = data;
+
+            const filterGoal = name == '' ? { userId: auth } : { userId: auth, name: { $regex: name, $options: 'i' } };
+
+            const findGoal = await MyGoal.find(filterGoal).skip(page * pageLimit).limit(pageLimit);;
+
+            const totalDocument = await commonService.totalDocuments(MyGoal, filterGoal);
+
+            const meta = {
+                total: totalDocument,
+                perPage: pageLimit,
+                currentPage: page + 1,
+                lastPage: Math.ceil(totalDocument / pageLimit),
+            }
+
+            return { data: findGoal, meta: meta }
+        } catch (err) {
+            throw new BadRequestException("Something went wrong")
+        }
     }
 }
 

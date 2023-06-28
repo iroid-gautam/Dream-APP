@@ -155,27 +155,72 @@ class HabitsServices {
 
 
 
-    // static async editHabit(id, data, req, res) {
-    //     const { name, frequency, description, startDate, goalId } = data;
-    //     if (mongoose.Types.ObjectId.isValid(id)) {
-    //         const findHabit = await commonService.findByPk(MyHabits, { _id: id });
-    //         if (findHabit) {
-    //             const editHabit = await commonService.updateById(MyHabits, findHabit._id, {
-    //                 name: name,
-    //                 frequency: frequency,
-    //                 description: description,
-    //                 startDate: startDate,
-    //                 goalId: goalId
-    //             });
+    /**
+     * @description: Edit habits
+     * @param {*} id 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editHabit(id, data, req, res) {
+        const { name, frequency, description, startDate, goalId } = data;
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            const findHabit = await commonService.findByPk(MyHabits, { _id: id });
+            if (findHabit) {
+                const editHabit = await commonService.updateById(MyHabits, findHabit._id, {
+                    name: name,
+                    frequency: frequency,
+                    description: description,
+                    startDate: startDate,
+                    goalId: goalId
+                });
 
-    //             return editHabit;
-    //         } else {
-    //             throw new NotFoundException('This habitId is not found')
-    //         }
-    //     } else {
-    //         throw new BadRequestException("please provide correct habitId")
-    //     }
-    // }
+                return editHabit;
+            } else {
+                throw new NotFoundException('This habitId is not found')
+            }
+        } else {
+            throw new BadRequestException("please provide correct habitId")
+        }
+    }
+
+
+
+    /**
+     * @description: Search habit
+     * @param {*} auth 
+     * @param {*} query 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async searchHabitFilter(auth, query, data, req, res) {
+        try {
+            const page = parseInt(query.page) - 1 || 0;
+            const pageLimit = parseInt(query.limit) || 20;
+
+            const { name } = data;
+
+            const filterHabit = name == '' ? { userId: auth } : { userId: auth, name: { $regex: name, $options: 'i' } };
+
+            const findHabit = await MyHabits.find(filterHabit).skip(page * pageLimit).limit(pageLimit);;
+
+            const totalDocument = await commonService.totalDocuments(MyHabits, filterHabit);
+
+            const meta = {
+                total: totalDocument,
+                perPage: pageLimit,
+                currentPage: page + 1,
+                lastPage: Math.ceil(totalDocument / pageLimit),
+            }
+
+            return { data: findHabit, meta: meta }
+        } catch (err) {
+            throw new BadRequestException("Something went wrong")
+        }
+    }
 }
 
 export default HabitsServices;
