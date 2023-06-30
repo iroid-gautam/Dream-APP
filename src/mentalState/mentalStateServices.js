@@ -7,6 +7,7 @@ import { ObjectId } from "mongodb";
 import moment from "moment";
 import GetMentalScoreResource from "./resources/getMentalScoreResource";
 import OverAllScoreResource from "./resources/overallScore";
+import MentalStateHistoryResource from "./resources/mentalHistory";
 
 class MentalStateServices {
     /**
@@ -110,6 +111,13 @@ class MentalStateServices {
 
 
 
+    /**
+     * @description: Over all score get
+     * @param {*} auth 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
     static async overAllScoreFind(auth, req, res) {
 
         // Current week data
@@ -172,6 +180,76 @@ class MentalStateServices {
 
         return { ...new OverAllScoreResource(week) }
 
+    }
+
+
+
+    /**
+     * @description: Get mental state history
+     * @param {*} auth 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async mentalStateHistory(auth, req, res) {
+        // try {
+        // Graph dates find last 3 weeks data
+        const endDate = moment().toDate();  // Current date
+        const startDate = moment().subtract(3, 'weeks').toDate();  // Three weeks ago
+
+        const dates = [];
+
+        for (let i = startDate; i <= endDate; i = moment(i).add(1, 'day').toDate()) {
+            const findLast3Week = await MentalState.findOne({
+                userId: auth,
+                $expr: {
+                    $eq: [
+                        { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        { $dateToString: { format: "%Y-%m-%d", date: { $toDate: i } } }
+                    ]
+                }
+            });
+            dates.push({ date: moment(i).unix(), score: findLast3Week ? findLast3Week.score : 0 })
+        }
+
+        // ---------------------------------------------------------------
+        // current week dates count score
+        const currentDate = new Date();
+
+        const currenyWeek = new Date(currentDate);
+        currenyWeek.setDate(currentDate.getDate() - currentDate.getDay());
+
+        const endingWeek = new Date(currenyWeek);
+        endingWeek.setDate(currenyWeek.getDate() + 6);
+
+        const totalAvg = await MentalState.aggregate([
+            {
+                $match: {
+                    userId: new ObjectId(auth),
+                    createdAt: {
+                        $gte: currenyWeek,
+                        $lt: endingWeek
+                    }
+                }
+            },
+            { $group: { _id: null, total: { $sum: '$score' } } }
+        ]);
+
+        const totalDocument = await commonService.totalDocuments(MentalState, { userId: auth, createdAt: { $gte: currenyWeek, $lt: endingWeek } });
+
+        const averageScore = (totalAvg.length > 0) ? totalAvg[0].total / totalDocument : 0;
+        const currentWeek10Score = averageScore / 10 * 10;
+
+        // Peek day and Down day
+        const peekDay = await MentalState.find({ userId: auth, createdAt: { $gte: currenyWeek, $lt: endingWeek } }).sort({ "score": -1 }).limit(1);
+        const downDay = await MentalState.find({ userId: auth, createdAt: { $gte: currenyWeek, $lt: endingWeek } }).sort({ "score": 1 }).limit(1);
+
+        const history = { dates: dates, current: currentWeek10Score.toFixed(2), peekDay: peekDay[0], downDay: downDay[0] }
+
+        return { ...new MentalStateHistoryResource(history) }
+        // } catch (err) {
+        //     console.log(err);
+        // }
     }
 }
 

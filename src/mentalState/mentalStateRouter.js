@@ -12,4 +12,6 @@ routes.get('/', asyncWrap(MentalStateController.getMentalScore));
 
 routes.get('/overAllScore', asyncWrap(MentalStateController.overAllScoreFind));
 
+routes.get('/history', asyncWrap(MentalStateController.mentalStateHistory));
+
 module.exports = routes;

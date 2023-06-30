@@ -47,6 +47,18 @@ class MentalStateController {
         const data = await MentalStateServices.overAllScoreFind(req.user._id, req, res);
         return res.send({ data: data })
     }
+
+
+
+    /**
+     * @description: Mental state history
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async mentalStateHistory(req, res) {
+        const data = await MentalStateServices.mentalStateHistory(req.user._id, req, res);
+        return res.send({ data: data })
+    }
 }
 
 
