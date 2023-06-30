@@ -12,6 +12,10 @@ const mentalStateSchema = mongoose.Schema({
     emojiId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'emoji'
+    },
+    added: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

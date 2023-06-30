@@ -9,12 +9,12 @@ export default class HabitListingResource {
             weeklyCompleted: progress.h1Done,
             monthly: progress.h2,
             monthlyCompleted: progress.h2Done,
-            habits: habit.map((file) => ({
+            habits: habit.length > 0 ? habit.map((file) => ({
                 _id: file._id,
                 name: file.name,
                 frequency: file.frequency,
                 markDone: file.markDone
-            }))
+            })) : null
         });
     }
 }

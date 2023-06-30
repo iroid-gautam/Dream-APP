@@ -64,6 +64,18 @@ class GoalController {
         const { data, meta } = await GoalServices.searchGoal(req.user._id, req.query, req.body, req, res);
         return res.send({ data: new SearchHabitGoalResource(data), meta: meta })
     }
+
+
+
+    /**
+     * @description: Goal progress completed status
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async goalProgressCompleted(req, res) {
+        const { data, meta } = await GoalServices.goalProgressCompleted(req.user._id, req.query, req, res);
+        return res.send({ data: data, meta: meta })
+    }
 }
 
 export default GoalController;

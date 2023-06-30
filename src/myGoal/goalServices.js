@@ -3,6 +3,7 @@ import MyGoal from "../../model/myGoal";
 import commonService from "../../utils/commonServices";
 import { BadRequestException, NotFoundException } from "../common/error-exceptions"
 import GoalResource from "./resources/goalResource";
+import GoalProgressCompleteListingResource from "./resources/progressCompleteResource";
 
 class GoalServices {
     /**
@@ -150,6 +151,39 @@ class GoalServices {
         } catch (err) {
             throw new BadRequestException("Something went wrong")
         }
+    }
+
+
+
+    /**
+     * @description: Goal progress completed status
+     * @param {*} auth 
+     * @param {*} query 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async goalProgressCompleted(auth, query, req, res) {
+        const page = parseInt(query.page) - 1 || 0;
+        const pageLimit = parseInt(query.limit) || 20;
+
+        const progress = await commonService.totalDocuments(MyGoal, { userId: auth });
+        const completeGoal = await commonService.totalDocuments(MyGoal, { userId: auth, markDone: true });
+
+        const { markDone } = query;
+        const findGoal = await MyGoal.find({ userId: auth, markDone: markDone }).skip(page * pageLimit).limit(pageLimit);
+
+        const totalDocument = await commonService.totalDocuments(MyGoal, { userId: auth, markDone: markDone });
+
+        const meta = {
+            total: totalDocument,
+            perPage: pageLimit,
+            currentPage: page + 1,
+            lastPage: Math.ceil(totalDocument / pageLimit),
+        }
+
+        const process = { progress: progress, complete: completeGoal };
+
+        return { data: new GoalProgressCompleteListingResource(process, findGoal), meta }
     }
 }
 

@@ -589,6 +589,37 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
+  /mentalState:
+    get:
+      summary: Get mental score
+      description: mental score get
+      tags:
+        - Mental State
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /mentalState/overAllScore:
+    get:
+      summary: Get Over All Score
+      tags:
+        - Mental State
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
   /intention:
     post:
       summary: Add my intention
@@ -903,7 +934,7 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Visit the gym 
+                  example: Visit the gym
 
       responses:
         "200":
@@ -972,7 +1003,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-  
   /goal/{goalId}:
     get:
       summary: Get single goal
@@ -998,31 +1028,29 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
+    delete:
+      summary: Delete Goal
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
 
-    # delete:
-    #   summary: Delete Goal
-    #   tags:
-    #     - My Goal
-    #   security:
-    #     - bearerAuth: []
-    #   parameters:
-    #     - in: path
-    #       name: goalId
-    #       required: true
-    #       schema:
-    #         type: string
-    #         example: 63bd4dcff9e5e2f0107cb2f6
-
-    #   responses:
-    #     "200":
-    #       $ref: "#/components/responses/Success"
-    #     "400":
-    #       $ref: "#/components/responses/BadRequestError"
-    #     "401":
-    #       $ref: "#/components/responses/UnauthorizedError"
-    #     "404":
-    #       $ref: "#/components/responses/NotFoundError"
-
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
 
   /goal/markAsDone/{goalId}:
     post:
@@ -1048,7 +1076,6 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "404":
           $ref: "#/components/responses/NotFoundError"
-
 
   /goal/searchGoal:
     post:
@@ -1081,6 +1108,44 @@ paths:
                 name:
                   type: string
                   example: Implement a healthy sleep schedule
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /goal/progressComplete:
+    get:
+      summary: Get all goal listing
+      description: |
+        - markDone :- false -> In Progress || true -> Completed
+      tags:
+        - My Goal
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+        - in: query
+          name: markDone
+          required: true
+          schema:
+            type: string
+            enum: ["false", "true"]
 
       responses:
         "200":
