@@ -2,8 +2,8 @@
 export default class OverAllScoreResource {
     constructor(data) {
         return ({
-            lastWeekAvg: data.current,
-            currentWeekAvg: data.lastWeek
+            lastWeekAvg: data.lastWeek,
+            currentWeekAvg: data.current
         });
     }
 }
