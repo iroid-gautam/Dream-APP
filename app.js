@@ -5,6 +5,7 @@ import fs from "fs";
 import swagger from "./src/common/config/swagger";
 import errorHandler from "./src/common/middlewares/error-handler.middleware";
 import passport from "passport";
+import flash from "connect-flash";
 import routes from "./routes/index";
 import mongoConnection from "./model/connection";
 import "./src/common/config/jwt-strategy";
@@ -36,6 +37,13 @@ app.use(express.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
   return res.render("errors/500");
+});
+
+app.use(flash());
+app.use(function (req, res, next) {
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    next();
 });
 
 app.use("/api/documentation", swagger);

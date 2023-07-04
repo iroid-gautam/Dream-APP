@@ -1,8 +1,27 @@
 import Emojis from "../model/emojis";
 import MindBody from "../model/mindAndBody";
 import MyInspiration from "../model/myInspiration";
+import Admin from "../model/admin";
 import { baseUrl } from "../src/common/constants/constant";
 
+// admin credentials
+export const admin = async () => {
+
+    const adminData = {
+        email: 'admin@kickfearandbuttapp.com',
+        password: '$2y$12$ghkZX2MM/douHFJnsO9iUu/LM88cQ/TcK8WZR4oIkKJF7nS1ItVTO'      // admin@123
+    }
+
+    const finddata = await Admin.find({});
+    if (finddata.length === 0) {
+        const inserted = await Admin.create(adminData);
+        console.log('admin seeded');
+        return true;
+    }
+}
+admin()
+
+// Emojis seeding
 export const seedImages = async () => {
     const images = [
         {
@@ -47,6 +66,7 @@ export const seedImages = async () => {
 seedImages()
 
 
+// My mind and body seeding
 export const myMindAndBody = async () => {
     const mindBody = [
         {
@@ -74,6 +94,7 @@ myMindAndBody()
 
 
 
+// My inspiration seeding
 export const myInspiration = async () => {
     const inspiration = [
         {
