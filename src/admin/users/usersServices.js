@@ -30,7 +30,7 @@ class usersServices {
             $or: [{ "name": { $regex: search_value, $options: 'i' } }, { "email": { $regex: search_value, $options: 'i' } },]
         };
 
-        const data = await User.find(search_value ? search_query : {}).skip(page).limit(limit);
+        const data = await User.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'created_at': -1 });
         const count = await commonService.totalDocuments(User, data);
 
         return res.send({
