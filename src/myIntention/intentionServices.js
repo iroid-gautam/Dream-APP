@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import MyIntention from "../../model/myIntention";
 import commonService from "../../utils/commonServices";
 import { BadRequestException, ConflictException, NotFoundException } from "../common/error-exceptions";
@@ -37,11 +38,42 @@ class IntentionServices {
     static async getIntention(auth, req, res) {
         const findInte = await commonService.findOne(MyIntention, { userId: auth });
         // if (findInte) {
-            return findInte
+        return findInte
         // } else {
         //     // throw new NotFoundException("Intention not found")
         //     return res.send({ data: null })
         // }
+    }
+
+
+
+
+    /**
+     * @description: Edit intrntions
+     * @param {*} auth 
+     * @param {*} id 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editIntention(auth, id, data, req, res) {
+        const { description } = data;
+
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            const findIntention = await commonService.findOne(MyIntention, { _id: id, userId: auth });
+            if (findIntention) {
+                const updateInte = await commonService.updateById(MyIntention, findIntention._id, {
+                    description: description
+                });
+
+                return updateInte;
+            } else {
+                throw new BadRequestException("This intention id not found")
+            }
+        } else {
+            throw new BadRequestException("Please provide correct intentionId")
+        }
     }
 }
 

@@ -4692,6 +4692,10 @@ input[type="button"].btn-block {
   }
 }
 
+.hide {
+  display: none;
+}
+
 .accordion {
   overflow-anchor: none;
   background-color: #2C346B;

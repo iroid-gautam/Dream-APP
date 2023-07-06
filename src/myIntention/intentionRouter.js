@@ -9,5 +9,6 @@ import addIntentionDtos from "./Dtos/addIntentionDtos";
 
 routes.post('/', validator.body(addIntentionDtos), asyncWrap(IntentionController.intentionAdd));
 routes.get('/', asyncWrap(IntentionController.getIntention));
+routes.put('/:id', asyncWrap(IntentionController.editIntention));
 
 module.exports = routes;

@@ -619,7 +619,7 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "404":
           $ref: "#/components/responses/NotFoundError"
-  
+
   /mentalState/history:
     get:
       summary: Mental state history
@@ -677,6 +677,42 @@ paths:
           $ref: "#/components/responses/Success"
         "400":
           $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /intention/{intentionId}:
+    put:
+      summary: Edit Intention
+      tags:
+        - My Intention
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: intentionId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
         "404":
           $ref: "#/components/responses/NotFoundError"
 
@@ -1173,7 +1209,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-
   /journal:
     post:
       summary: Add My Journal
@@ -1209,7 +1244,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-    
     get:
       summary: Get all journal listing
       description: Get journal listing
@@ -1237,5 +1271,59 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+  /ourInsights:
+    get:
+      summary: All Our Insights listing
+      tags:
+        - Our Insights
+      security:
+        - bearerAuth: []
+
+      
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+
+  /ourInsights/{insightsId}:
+    get:
+      summary: Get single Our Insights
+      tags:
+        - Our Insights
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: insightsId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
         "404":
           $ref: "#/components/responses/NotFoundError"

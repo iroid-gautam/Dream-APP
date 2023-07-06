@@ -19,5 +19,6 @@ router.use('/my', authenticate, require('../src/myMindBody&Inspiration/myRouter'
 router.use('/habit', authenticate, require('../src/myHabits/habitsRouter'));
 router.use('/goal', authenticate, require('../src/myGoal/goalRouter'));
 router.use('/journal', authenticate, require('../src/myJournal/journalRouter'));
+router.use('/ourInsights', authenticate, require('../src/ourInsights/insightsRouter'));
 
 export default router;

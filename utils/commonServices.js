@@ -68,6 +68,19 @@ class commonService {
         return result;
     }
 
+
+    /*
+     * @description : find single id from table by query
+     * @param  {object} model : mongodb model
+     * @param  {object} query : {}
+     * @param {object} options : {}
+     * @return {object} result : database result
+     */
+    static async findById(model, query) {
+        const result = await model.findById(query);
+        return result;
+    };
+
     /*
      * @description : delete any record in database by primary key
      * @param  {object} model : mongodb model
@@ -76,7 +89,6 @@ class commonService {
      */
 
     static async deleteById(model, id) {
-        // console.log(id);
         const result = await model.findByIdAndDelete(id);
         return result;
     }
