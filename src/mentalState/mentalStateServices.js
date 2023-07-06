@@ -62,7 +62,7 @@ class MentalStateServices {
                 throw new NotFoundException("This emoji is not found")
             }
         } else {
-            throw new BadRequestException("Please provide correct emojiId")
+            throw new BadRequestException("Please select emoji")
         }
     }
 

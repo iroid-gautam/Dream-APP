@@ -30,7 +30,7 @@ class AuthController {
 
     const verifyOtp = await AuthService.verifyOtp(data);
 
-    return res.send({ data : verifyOtp });
+    return res.send({ data: verifyOtp });
   }
 
   /**
@@ -59,7 +59,8 @@ class AuthController {
 
     const login = await AuthService.login(data);
 
-    return res.send({ data : login
+    return res.send({
+      data: login
       // ... new GetUserResource(login),
       // data: {
       //   auth: {
@@ -80,13 +81,13 @@ class AuthController {
    */
   static async logOut(req, res) {
     const data = {
-      reqData : req.body,
-      authUser : req.user
+      reqData: req.body,
+      authUser: req.user
     };
 
     await AuthService.logOut(data);
 
-    res.send({ message : "Logout successfully."});
+    res.send({ message: "Logged out successfully." });
   }
 
   /**
@@ -97,7 +98,7 @@ class AuthController {
   static async resetPassword(req, res) {
     await AuthService.resetPassword(req.body.email);
 
-    return res.send({ message : "Please check your email for instructions to reset your password."});
+    return res.send({ message: "Please check your email for instructions to reset your password." });
   }
 }
 
