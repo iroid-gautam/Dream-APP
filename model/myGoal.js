@@ -33,7 +33,8 @@ const goalSchema = mongoose.Schema({
     },
     habitsId: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'myhabit'
+        ref: 'myhabit',
+        default: null
     }]
 }, { timestamps: true });
 

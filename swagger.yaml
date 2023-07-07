@@ -1046,7 +1046,7 @@ paths:
                 - startDate
                 - endDate
                 - image
-                - habitsId
+                # - habitsId
       responses:
         "200":
           $ref: "#/components/responses/Success"

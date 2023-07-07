@@ -17,32 +17,39 @@ class GoalServices {
     static async addGoal(auth, file, data, req, res) {
         const { name, type, description, startDate, endDate, habitsId } = data;
 
-        const h = habitsId.split(',');
+        // const h = habitsId.split(',');
 
-        h.map(data => {
-            if (mongoose.Types.ObjectId.isValid(data)) {
-                return
+        // h.map(data => {
+        //     if (mongoose.Types.ObjectId.isValid(data)) {
+        //         return
+        //     } else {
+        //         throw new BadRequestException("Please provide correct habitId")
+        //     }
+        // })
+
+        try {
+            const nullHabit = habitsId === undefined ? null : habitsId.split(',')
+
+            if (file) {
+                const image = `goalImage/${file.filename}`;
+                const insertGoal = await commonService.createOne(MyGoal, {
+                    userId: auth,
+                    name: name,
+                    type: type,
+                    description: description,
+                    startDate: startDate,
+                    endDate: endDate,
+                    image: image,
+                    habitsId: nullHabit
+                });
+
+                return { ...new GoalResource(insertGoal) };
             } else {
-                throw new BadRequestException("Please provide correct habitId")
+                throw new BadRequestException("Please select image")
             }
-        })
-
-        if (file) {
-            const image = `goalImage/${file.filename}`;
-            const insertGoal = await commonService.createOne(MyGoal, {
-                userId: auth,
-                name: name,
-                type: type,
-                description: description,
-                startDate: startDate,
-                endDate: endDate,
-                image: image,
-                habitsId: habitsId.split(',')
-            });
-
-            return { ...new GoalResource(insertGoal) };
-        } else {
-            throw new BadRequestException("Please select image")
+        } catch (err) {
+            console.log(err);
+            throw new BadRequestException("Goal not created")
         }
     }
 

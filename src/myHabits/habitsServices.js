@@ -18,25 +18,32 @@ class HabitsServices {
      */
     static async addHabits(auth, data, req, res) {
         const { name, frequency, description, startDate, goalId } = data;
-        if (mongoose.Types.ObjectId.isValid(goalId)) {
-            const findGoal = await commonService.findByPk(MyGoal, goalId);
-            if (findGoal) {
-                const addhabit = await commonService.createOne(MyHabits, {
-                    userId: auth,
-                    name: name,
-                    frequency: frequency,
-                    description: description,
-                    startDate: startDate,
-                    goalId: goalId
-                });
-
-                return { ...new SingleHabitResource(addhabit) }
-            } else {
-                throw new NotFoundException("This goal is not found")
-            }
-        } else {
-            throw new BadRequestException('Please provide correct goalId')
+        try {
+            const nullGoal = goalId === '' ? null : goalId; 
+            const addhabit = await commonService.createOne(MyHabits, {
+                userId: auth,
+                name: name,
+                frequency: frequency,
+                description: description,
+                startDate: startDate,
+                goalId: nullGoal
+            });
+    
+            return { ...new SingleHabitResource(addhabit) }
+        } catch (err) {
+            console.log(err);
+            throw new BadRequestException("Habit not created")
         }
+        // if (mongoose.Types.ObjectId.isValid(goalId)) {
+        // const findGoal = await commonService.findByPk(MyGoal, goalId);
+        // if (findGoal) {
+        
+        // } else {
+        //     throw new NotFoundException("This goal is not found")
+        // }
+        // } else {
+        //     throw new BadRequestException('Please provide correct goalId')
+        // }
     }
 
 
