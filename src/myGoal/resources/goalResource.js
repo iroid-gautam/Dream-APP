@@ -8,8 +8,8 @@ export default class GoalResource {
             name: data.name,
             type: data.type,
             description: data.description,
-            startDate: moment().unix(data.startDate),
-            endDate: moment().unix(data.endDate),
+            startDate: moment(data.startDate).unix(),
+            endDate: moment(data.endDate).unix(),
             image: data.image ? baseUrl(data.image) : null,
             markDone: data.markDone,
             habits: data.habitsId ? data.habitsId.map(file => ({

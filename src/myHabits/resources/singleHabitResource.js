@@ -7,7 +7,7 @@ export default class SingleHabitResource {
             name: data.name,
             frequency: data.frequency,
             description: data.description,
-            startDate: moment().unix(data.startDate),
+            startDate: moment(data.startDate).unix(),
             markDone: data.markDone,
             goal: data.goalId ? data.goalId.name : null,
         });
