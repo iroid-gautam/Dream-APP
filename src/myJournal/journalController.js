@@ -23,7 +23,7 @@ class JournalController {
      */
     static async getAllJournalListing(req, res) {
         const { data, meta } = await JournalServices.getAllJournalListing(req.user._id, req.query, req, res);
-        return res.send({ data: Object.keys(data).length > 0 ? data : null, meta: meta })
+        return res.send({ data: data, meta: meta })
     }
 }
 
