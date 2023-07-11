@@ -1,7 +1,7 @@
 <%- include('../layouts/header') %>
 
     <!-- Page Heading -->
-    <h1 class="h3 mb-2 text-gray-800">Our Insights</h1>
+    <h1 class="h3 mb-2 text-gray-800">Videos & Podcasts</h1>
 
     <!-- DataTales Example -->
     <div class="card shadow mb-3">
@@ -18,19 +18,19 @@
                         </div>
                         <% } %>
                             <div style="display: flex; justify-content: right; margin-right: 20px;">
-                                <a href="/admin/ourinsights/addInsightPage" type="button" class="btn btn-primary">Add
-                                    Insights</a>
+                                <a href="/admin/videopodcasts/addPage" type="button" class="btn btn-primary">Add
+                                    Videos & Podcasts </a>
                             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered" id="ourInsights" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="videosorpodcasts" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>No.</th>
                             <th>Title</th>
                             <th>Description</th>
-                            <th>Insight Image</th>
+                            <th>Videos & Podcasts</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -45,16 +45,15 @@
 
 
     <script src="/admin/vendor/jquery/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
     <script>
         $("#success").show().delay(2000).fadeOut();
         $("#error").show().delay(2000).fadeOut();
-        $('#pageTitle').text('Our Insights')
-        $('#select-insights').addClass('active', 'true')
+        $('#pageTitle').text('Video & Podcasts')
+        $('#select-vp').addClass('active', 'true')
 
         $(document).ready(function () {
-            $('#ourInsights').DataTable({
+            $('#videosorpodcasts').DataTable({
                 paging: true,
                 responsive: true,
                 searching: true,
@@ -62,7 +61,7 @@
                 serverSide: true,
                 ordering: false,
                 ajax: {
-                    url: "<%= process.env.APP_URL_ADMIN %>/admin/ourinsights/listingInsights",
+                    url: "<%= process.env.APP_URL_ADMIN %>/admin/videopodcasts/listing",
                     type: "GET",
                 },
                 columns: [
@@ -87,17 +86,20 @@
                         "width": "40%"
                     },
                     {
-                        "data": "image",
+                        "data": "videoPodcast",
                         "render": function (data) {
-                            return data == null ? `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/admin/img/background.jpg" height="70" style="border-radius: 20px;" />` : `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/${data}" height="70"/>`
+                            return data == null ? `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/admin/img/background.jpg" height="70" style="border-radius: 20px;" />` : `<video width="350" height="140" controls>
+                                                                    <source src="${'<%= process.env.APP_URL_ADMIN %>'}/${data}">
+                                                                </video>`
                         }
                     },
                     {
                         "data": null,
                         "render": function (data) {
-                            // <a href="/admin/ourinsights/updatePage/${data._id}" style="border-radius:11px; padding: 6px 10px;" class="btn btn-success"><i class="fas fa-pencil-alt"></i></a>
-                            return `  <a href="/admin/ourinsights/delete/${data._id}" onclick="deleteRecord(event)" style="border-radius:11px; padding: 6px 11px;" class="btn btn-danger"><i class="fas fa-trash"></i></a>`
-                        }
+                            // <a href="/admin/ourinsights/updatePage/${data._id}" style="border-radius:11px; padding: 6px 10px;" class="btn btn-success"><i class="fas fa-pencil-alt"></i></a> 
+                            return ` <a href="/admin/videopodcasts/deleteVP/${data._id}" onclick="deleteRecord(event)" style="border-radius:11px; padding: 6px 11px;" class="btn btn-danger"><i class="fas fa-trash"></i></a>`
+                        },
+                        "width": "9%"
                     },
                 ],
             });
@@ -125,10 +127,10 @@
                             success: function (d) {
                                 Swal.fire(
                                     'Deleted!',
-                                    'Insight deleted successfully',
+                                    'Videos & Podcasts deleted successfully',
                                     'success'
                                 )
-                                $('#ourInsights').DataTable().ajax.reload();
+                                $('#videosorpodcasts').DataTable().ajax.reload();
                             }
                         });
                     }
