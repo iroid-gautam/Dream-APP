@@ -47,7 +47,7 @@ class JournalServices {
         const page = parseInt(query.page) - 1 || 0;
         const pageLimit = parseInt(query.limit) || 20;
 
-        const findJournals = await MyJournal.find({ userId: auth }).skip(page * pageLimit).limit(pageLimit);
+        const findJournals = await MyJournal.find({ userId: auth }).skip(page * pageLimit).limit(pageLimit).sort({ 'createdAt': -1 });
 
         const totalDocument = await commonService.totalDocuments(MyJournal, { userId: auth });
 
