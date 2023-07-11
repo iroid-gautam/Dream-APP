@@ -753,6 +753,7 @@ paths:
       summary: Add My Habits
       description: |
         - frequency :-  0 => Daily || 1 => Weekly || 2 => Monthly
+        - 0 -> Su || 1 -> Mo || 2 -> Tu || 3 -> We || 4 -> Th || 5 -> Fr || 6 -> Sa
       tags:
         - My Habits
       security:
@@ -771,6 +772,9 @@ paths:
                 frequency:
                   type: integer
                   example: 0
+                days:
+                  type: string
+                  example: [0, 1, 2, 3, 4, 5, 6]
                 description:
                   type: string
                   example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
@@ -844,6 +848,9 @@ paths:
 
     put:
       summary: Edit habit
+      description: |
+        - frequency :-  0 => Daily || 1 => Weekly || 2 => Monthly
+        - 0 -> Su || 1 -> Mo || 2 -> Tu || 3 -> We || 4 -> Th || 5 -> Fr || 6 -> Sa
       tags:
         - My Habits
       security:
@@ -869,6 +876,9 @@ paths:
                 frequency:
                   type: integer
                   example: 0
+                days:
+                  type: string
+                  example: [0, 1, 2, 3, 4, 5, 6]
                 description:
                   type: string
                   example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
@@ -1274,7 +1284,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-
   /ourInsights:
     get:
       summary: All Our Insights listing
@@ -1283,7 +1292,6 @@ paths:
       security:
         - bearerAuth: []
 
-      
       parameters:
         - in: query
           name: page
@@ -1303,7 +1311,6 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "404":
           $ref: "#/components/responses/NotFoundError"
-
 
   /ourInsights/{insightsId}:
     get:

@@ -6,6 +6,7 @@ export default class SingleHabitResource {
             _id: data._id,
             name: data.name,
             frequency: data.frequency,
+            days: data.days,
             description: data.description,
             startDate: moment(data.startDate).unix(),
             markDone: data.markDone,

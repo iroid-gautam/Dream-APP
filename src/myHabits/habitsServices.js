@@ -17,18 +17,19 @@ class HabitsServices {
      * @returns 
      */
     static async addHabits(auth, data, req, res) {
-        const { name, frequency, description, startDate, goalId } = data;
+        const { name, frequency, days, description, startDate, goalId } = data;
         try {
-            const nullGoal = goalId === '' ? null : goalId; 
+            const nullGoal = goalId === '' ? null : goalId;
             const addhabit = await commonService.createOne(MyHabits, {
                 userId: auth,
                 name: name,
                 frequency: frequency,
+                days: days,
                 description: description,
                 startDate: startDate,
                 goalId: nullGoal
             });
-    
+
             return { ...new SingleHabitResource(addhabit) }
         } catch (err) {
             console.log(err);
@@ -37,7 +38,7 @@ class HabitsServices {
         // if (mongoose.Types.ObjectId.isValid(goalId)) {
         // const findGoal = await commonService.findByPk(MyGoal, goalId);
         // if (findGoal) {
-        
+
         // } else {
         //     throw new NotFoundException("This goal is not found")
         // }
@@ -171,16 +172,18 @@ class HabitsServices {
      * @returns 
      */
     static async editHabit(id, data, req, res) {
-        const { name, frequency, description, startDate, goalId } = data;
+        const { name, frequency, days, description, startDate, goalId } = data;
         if (mongoose.Types.ObjectId.isValid(id)) {
             const findHabit = await commonService.findByPk(MyHabits, { _id: id });
             if (findHabit) {
+                const nullGoal = goalId === '' ? null : goalId;
                 const editHabit = await commonService.updateById(MyHabits, findHabit._id, {
                     name: name,
                     frequency: frequency,
+                    days: days,
                     description: description,
                     startDate: startDate,
-                    goalId: goalId
+                    goalId: nullGoal
                 });
 
                 return editHabit;

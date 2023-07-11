@@ -12,6 +12,9 @@ const habitsSchema = mongoose.Schema({
     frequency: {
         type: Number,         // 0 -> Daily | 1 -> Weekly | 2 -> Monthly
     },
+    days: [{
+        type: Number         // 0 -> Su | 1 -> Mo | 2 -> Tu | 3 -> We | 4 -> Th | 5 -> Fr | 6 -> Sa
+    }],
     description: {
         type: String,
         trim: true
