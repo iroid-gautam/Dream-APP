@@ -34,6 +34,13 @@ class InsightsServices {
 
 
 
+    /**
+     * @description: Get single insights details
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
     static async getSingleInsightsDetails(id, req, res) {
         if (mongoose.Types.ObjectId.isValid(id)) {
             const findInsights = await commonService.findById(OurInsights, { _id: id });

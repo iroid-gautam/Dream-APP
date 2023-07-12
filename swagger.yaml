@@ -1334,3 +1334,107 @@ paths:
           $ref: "#/components/responses/BadRequestError"
         "404":
           $ref: "#/components/responses/NotFoundError"
+
+  /videoAndPodcasts:
+    get:
+      summary: Get all video and podcasts listing
+      description: |
+        - type =>  1 -> Videos || 2 -> Podcasts
+      tags:
+        - Video & Podcasts
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - 1
+              - 2
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /videoAndPodcasts/{videoPodcastId}:
+    get:
+      summary: Get Single Video & Podcasts
+      tags:
+        - Video & Podcasts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: videoPodcastId
+          required: true
+          schema:
+            type: string
+            example: 63bd4dcff9e5e2f0107cb2f6
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /inspirational:
+    get:
+      summary: Get all inspirational listing
+      description: |
+        - type => Clarity || Courage || Activation
+      tags:
+        - Inspirational
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum:
+              - Clarity
+              - Courage
+              - Activation
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"

@@ -1,0 +1,136 @@
+<%- include('../layouts/header') %>
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Inspirational Quotes</h1>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-3">
+        <div class="card-header py-4">
+            <!-- <h6 class="m-0 font-weight-bold text-primary">DataTables Example</h6> -->
+            <% if(success !='' ){ %>
+                <div class="alert alert-success" id="success">
+                    <%= success %>
+                </div>
+                <% } %>
+                    <% if(error !='' ){ %>
+                        <div class="alert alert-danger" id="error">
+                            <%= error %>
+                        </div>
+                        <% } %>
+                            <div style="display: flex; justify-content: right; margin-right: 20px;">
+                                <a href="/admin/inspirational/add" type="button" class="btn btn-primary">Add
+                                    Inspirational Quotes</a>
+                            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="inspirationalQ" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Inspirational</th>
+                            <th>Front Image</th>
+                            <th>Flip Image</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/admin/vendor/jquery/jquery.min.js"></script>
+
+    <script>
+        $("#success").show().delay(2000).fadeOut();
+        $("#error").show().delay(2000).fadeOut();
+        $('#pageTitle').text('Inspirational Quotes')
+        $('#select-IQ').addClass('active', 'true')
+
+        $(document).ready(function () {
+            $('#inspirationalQ').DataTable({
+                paging: true,
+                responsive: true,
+                searching: true,
+                processing: true,
+                serverSide: true,
+                ordering: false,
+                ajax: {
+                    url: "<%= process.env.APP_URL_ADMIN %>/admin/inspirational/listing",
+                    type: "GET",
+                },
+                columns: [
+                    {
+                        "data": "id",
+                        "render": function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        "data": "type",
+                        "render": function (data, type, row, meta) {
+                            return data !== null ? data : null
+                        }
+                    },
+                    {
+                        "data": "frontImage",
+                        "render": function (data) {
+                            return data == null ? `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/admin/img/background.jpg" height="70" style="border-radius: 20px;" />` : `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/${data}" height="70"/>`
+                        }
+                    },
+                    {
+                        "data": "flipImage",
+                        "render": function (data) {
+                            return data == null ? `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/admin/img/background.jpg" height="70" style="border-radius: 20px;" />` : `<img src="${'<%= process.env.APP_URL_ADMIN %>'}/${data}" height="70"/>`
+                        }
+                    },
+                    {
+                        "data": null,
+                        "render": function (data) {
+                            // <a href="/admin/ourinsights/updatePage/${data._id}" style="border-radius:11px; padding: 6px 10px;" class="btn btn-success"><i class="fas fa-pencil-alt"></i></a>
+                            return `  <a href="/admin/inspirational/delete/${data._id}" onclick="deleteRecord(event)" style="border-radius:11px; padding: 6px 11px;" class="btn btn-danger"><i class="fas fa-trash"></i></a>`
+                        }
+                    },
+                ],
+            });
+        });
+
+
+
+        function deleteRecord(ev) {
+            ev.preventDefault();
+            var id = ev.currentTarget.getAttribute('href');
+            // console.log(id);
+            Swal.fire({
+                title: 'Are you sure you want to delete this inspirational ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it !!'
+            })
+                .then((willDelete) => {
+                    if (willDelete.isConfirmed) {
+                        $.ajax({
+                            url: id,
+                            type: 'GET',
+                            success: function (d) {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'Inspirational deleted successfully',
+                                    'success'
+                                )
+                                $('#inspirationalQ').DataTable().ajax.reload();
+                            }
+                        });
+                    }
+                }).catch(err => console.log(err))
+        }
+    </script>
+
+    <%- include('../layouts/footer') %>

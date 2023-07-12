@@ -10,4 +10,7 @@ router.use('/user', authentication, require('../../src/admin/users/usersRouter')
 router.use('/ourinsights', authentication, require('../../src/admin/ourInsights/insightsRouter'));
 router.use('/videopodcasts', authentication, require('../../src/admin/videoAndPodcasts/videoPodcastRouter'));
 
+router.use('/inspirational', authentication, require('../../src/admin/inspirationalQuotes/inspirationalRouter'));
+router.use('/affirmation', authentication, require('../../src/admin/affirmations/affirmationsRouter'));
+
 module.exports = router;

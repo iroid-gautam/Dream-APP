@@ -35,7 +35,7 @@ class InsightsServices {
             $or: [{ "title": { $regex: search_value, $options: 'i' } }, { "description": { $regex: search_value, $options: 'i' } },]
         };
 
-        const data = await OurInsights.find(search_value ? search_query : {}).skip(page).limit(limit);
+        const data = await OurInsights.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'createdAt': -1 });
         const count = await commonService.totalDocuments(OurInsights, data);
 
         return res.send({

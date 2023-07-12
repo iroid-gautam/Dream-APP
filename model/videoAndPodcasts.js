@@ -19,7 +19,8 @@ const videoAndPodSchema = mongoose.Schema({
     },
     videoPodcast: {
         type: String,
-        trim: true
+        trim: true,
+        default: null
     }
 }, { timestamps: true });
 
