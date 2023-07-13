@@ -2,8 +2,10 @@ import commonService from "../../utils/commonServices";
 import User from "../../model/user";
 import fs from "fs";
 import path from "path";
-import { ConflictException, NotFoundException, UnprocesssableEntityException, } from "../common/error-exceptions";
+import bcrypt from "bcryptjs";
+import { BadRequestException, ConflictException, NotFoundException, UnprocesssableEntityException, } from "../common/error-exceptions";
 const { ObjectId } = require("mongodb");
+import { BCRYPT } from "../common/constants/constant";
 
 class UserService {
     /**
@@ -82,6 +84,37 @@ class UserService {
 
             return true;
         }
+    }
+
+
+
+    /**
+     * @description: Change password
+     * @param {*} auth 
+     * @param {*} data 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async changePassword(auth, data, req, res) {
+        const { currentPassword, newPassword, confirmNewPassword } = data;
+
+        const findUser = await commonService.findById(User, { _id: auth });
+
+        const matchPass = await bcrypt.compare(currentPassword, findUser.password);
+        if (!matchPass) {
+            throw new BadRequestException("Current password invalid")
+        }
+
+        if (newPassword == confirmNewPassword) {
+            const hashPass = await bcrypt.hash(newPassword, BCRYPT.SALT_ROUND)
+            const updatePass = await commonService.updateById(User, { _id: findUser._id }, {
+                password: hashPass
+            });
+            return updatePass;
+        } else {
+            throw new BadRequestException("New password or confirm password not match")
+        }
+
     }
 }
 

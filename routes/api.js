@@ -21,7 +21,7 @@ router.use('/goal', authenticate, require('../src/myGoal/goalRouter'));
 router.use('/journal', authenticate, require('../src/myJournal/journalRouter'));
 router.use('/ourInsights', authenticate, require('../src/ourInsights/insightsRouter'));
 
-router.use('/videoAndPodcasts', authRoutes, require("../src/videoAndPodcasts/videoPodRouter"));
-router.use('/inspirational', authRoutes, require("../src/inspirationalQuotes/inspirationalRouter"));
+router.use('/videoAndPodcasts', authenticate, require("../src/videoAndPodcasts/videoPodRouter"));
+router.use('/inspirational', authenticate, require("../src/inspirationalQuotes/inspirationalRouter"));
 
 export default router;

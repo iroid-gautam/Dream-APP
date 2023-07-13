@@ -43,6 +43,19 @@ class UserController {
         const data = await UserService.userProfilePictureUpdate(req.user._id, req.file, req, res);
         return res.send({ message: "Profile picture updated successfully" })
     }
+
+
+
+    /**
+     * @description: Change password
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async changePassword(req, res) {
+        const data = await UserService.changePassword(req.user._id, req.body, req, res);
+        return res.send({ message: "Your password has been changed successfully" })
+    }
 }
 
 export default UserController;

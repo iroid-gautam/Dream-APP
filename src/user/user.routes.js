@@ -10,4 +10,6 @@ router.put("/", asyncWrapper(UserController.update));
 
 router.put('/updatePicture', storeFiles("media/users", "profileImage", "single"), asyncWrapper(UserController.userProfilePictureUpdate));
 
+router.post("/changePassword", asyncWrapper(UserController.changePassword));
+
 module.exports = router;

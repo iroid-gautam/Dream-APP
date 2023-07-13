@@ -541,6 +541,45 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
 
+  /user/changePassword:
+    post:
+      summary: User change password
+      description: change password
+
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                  example: 87654321
+                newPassword:
+                  type: string
+                  example: 12345678
+                confirmNewPassword:
+                  type: string
+                  example: 12345678
+
+              required:
+                - currentPassword
+                - newPassword
+                - confirmNewPassword
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
   # Mental state
   /mentalState/emojis:
     get:
