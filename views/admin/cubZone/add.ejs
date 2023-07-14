@@ -1,0 +1,90 @@
+<%- include('../layouts/header') %>
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Add Cub Zone</h1>
+
+    <div class="col-lg-6" style="padding-right: 0;
+padding-left: 0;">
+
+        <!-- Circle Buttons -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"></h6>
+                <% if(success !='' ){ %>
+                    <div class="alert alert-success" style="margin-bottom: 0;" id="error">
+                        <%= success %>
+                    </div>
+                    <% } %>
+                        <% if(error !='' ){ %>
+                            <div class="alert alert-danger" style="margin-bottom: 0;" id="error">
+                                <%= error %>
+                            </div>
+                            <% } %>
+            </div>
+            <div class="card-body">
+                <form id="cubzone" method="post" enctype='multipart/form-data'>
+                    <div class="form-group">
+                        <label>Front Cub Zone Image : </label>
+                        <input type="file" style="line-height: 1.15;" class="form-control" id="frontImage"
+                            name="frontImage" accept="image/jpg, image/jpeg, image/png">
+                    </div>
+                    <div class="form-group">
+                        <label>Flip Cub Zone Image : </label>
+                        <input type="file" style="line-height: 1.15;" class="form-control" id="flipImage"
+                            name="flipImage" accept="image/jpg, image/jpeg, image/png">
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="/admin/vendor/jquery/jquery.min.js"></script>
+
+    <script>
+        $('#pageTitle').text('Add Cub Zone')
+        $('#select-CZ').addClass('active', 'true');
+
+
+        $(document).ready(function () {
+
+            jQuery.validator.addMethod("noSpace", function (value, element) {
+                return value == '' || value.trim().length != 0;
+            }, "No space please and don't leave it empty");
+
+            $.validator.addMethod("imageExtension", function (value, element) {
+                var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+                var fileExtension = value.split('.').pop().toLowerCase();
+                return $.inArray(fileExtension, allowedExtensions) !== -1;
+            }, "Please select a valid image file (JPG, JPEG, PNG)");
+
+
+            $("#cubzone").validate({
+                rules: {
+                    frontImage: {
+                        required: true,
+                        imageExtension: true
+                    },
+                    flipImage: {
+                        required: true,
+                        imageExtension: true
+                    },
+                },
+                messages: {
+                    frontImage: {
+                        required: "Front inspirational image is required",
+                    },
+                    flipImage: {
+                        required: "Flip inspirational image is required",
+                    },
+                },
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            })
+        })
+    </script>
+
+
+    <%- include('../layouts/footer') %>

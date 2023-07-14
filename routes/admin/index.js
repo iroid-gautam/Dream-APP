@@ -14,5 +14,6 @@ router.use('/inspirational', authentication, require('../../src/admin/inspiratio
 router.use('/affirmation', authentication, require('../../src/admin/affirmations/affirmationsRouter'));
 router.use('/questions', authentication, require('../../src/admin/questionsToContemplate/questionsRouter'));
 router.use('/strategy', authentication, require('../../src/admin/strategy/strategyRouter'));
+router.use('/cubzone', authentication, require('../../src/admin/cubZone/cubZoneRouter'));
 
 module.exports = router;
