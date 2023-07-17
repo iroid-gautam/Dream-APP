@@ -8,7 +8,7 @@ import { baseUrl } from "../src/common/constants/constant";
 export const admin = async () => {
 
     const adminData = {
-        email: 'admin@kickfearinthebuttapp.com',
+        email: 'admin@kickfearinthebutt.com',
         password: '$2y$12$ghkZX2MM/douHFJnsO9iUu/LM88cQ/TcK8WZR4oIkKJF7nS1ItVTO'      // admin@123
     }
 
