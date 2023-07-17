@@ -14,10 +14,11 @@ class InspirationalServices {
     static async inspirationalListing(query, req, res) {
         const page = parseInt(query.page) - 1 || 0;
         const pageLimit = parseInt(query.limit) || 20;
+        const { type } = query;
 
-        const findInspirational = await Inspirational.find({ type: query.type }).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
+        const findInspirational = await Inspirational.find({ type: { $regex: type, $options: 'i' } }).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
-        const totalDocument = await commonService.totalDocuments(Inspirational, { type: query.type });
+        const totalDocument = await commonService.totalDocuments(Inspirational, { type: { $regex: type, $options: 'i' } });
 
         const meta = {
             total: totalDocument,
