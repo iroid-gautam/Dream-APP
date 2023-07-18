@@ -1437,13 +1437,14 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
 
-  /inspirational:
+  /allCardsListing:
     get:
-      summary: Get all inspirational listing
+      summary: Get all cards listing
       description: |
-        - type => Clarity || Courage || Activation
+        - type => Clarity || Courage || Activation || Cubzone
+        - section => 0 -> Inspiration Quotes || 1 -> Affirmations || 2 -> Questions To Contemplate || 3 -> Strategy || 4 -> Cubzone
       tags:
-        - Inspirational
+        - All Card Listing
       security:
         - bearerAuth: []
 
@@ -1459,6 +1460,17 @@ paths:
             type: integer
             example: 10
         - in: query
+          name: section
+          required: true
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+              - 2
+              - 3
+              - 4
+        - in: query
           name: type
           required: true
           schema:
@@ -1467,6 +1479,7 @@ paths:
               - Clarity
               - Courage
               - Activation
+              - Cubzone
 
       responses:
         "200":

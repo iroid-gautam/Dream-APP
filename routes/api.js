@@ -22,10 +22,10 @@ router.use('/journal', authenticate, require('../src/myJournal/journalRouter'));
 router.use('/ourInsights', authenticate, require('../src/ourInsights/insightsRouter'));
 
 router.use('/videoAndPodcasts', authenticate, require("../src/videoAndPodcasts/videoPodRouter"));
-router.use('/inspirational', authenticate, require("../src/inspirationalQuotes/inspirationalRouter"));
-router.use('/affirmation', authenticate, require('../src/affirmations/affirmationRouter'));
-router.use('/questions', authenticate, require('../src/questionsToContemplate/questionsRouter'));
-router.use('/strategy', authenticate, require('../src/strategy/strategyRouter'));
-router.use('/cubzone', authenticate, require('../src/cubZone/cubzoneRouter'));
+router.use('/allCardsListing', authenticate, require("../src/allCardsListing/allCardsListingRouter"));
+// router.use('/affirmation', authenticate, require('../src/affirmations/affirmationRouter'));
+// router.use('/questions', authenticate, require('../src/questionsToContemplate/questionsRouter'));
+// router.use('/strategy', authenticate, require('../src/strategy/strategyRouter'));
+// router.use('/cubzone', authenticate, require('../src/cubZone/cubzoneRouter'));
 
 export default router;
