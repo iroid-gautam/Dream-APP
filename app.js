@@ -9,6 +9,7 @@ import flash from "connect-flash";
 import routes from "./routes/index";
 import mongoConnection from "./model/connection";
 import "./src/common/config/jwt-strategy";
+import "./cronJob/index";
 
 import "./seeder/index";
 
