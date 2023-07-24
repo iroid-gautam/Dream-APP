@@ -1284,7 +1284,7 @@ paths:
 
               required:
                 - description
-                - image
+                # - image
       responses:
         "200":
           $ref: "#/components/responses/Success"
