@@ -36,10 +36,12 @@ class StrategyServices {
         const data = await Strategy.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'createdAt': -1 });
         const count = await commonService.totalDocuments(Strategy, data);
 
+        const total_records_with_filter = await commonService.totalDocuments(Strategy, search_query);
+
         return res.send({
             draw: draw,
             iTotalRecords: count,
-            iTotalDisplayRecords: count,
+            iTotalDisplayRecords: total_records_with_filter,
             aaData: data
         });
     }

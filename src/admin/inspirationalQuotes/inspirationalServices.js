@@ -35,10 +35,12 @@ class InspirationalServices {
         const data = await Inspirational.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'createdAt': -1 });
         const count = await commonService.totalDocuments(Inspirational, data);
 
+        const total_records_with_filter = await commonService.totalDocuments(Inspirational, search_query);
+
         return res.send({
             draw: draw,
             iTotalRecords: count,
-            iTotalDisplayRecords: count,
+            iTotalDisplayRecords: total_records_with_filter,
             aaData: data
         });
     }

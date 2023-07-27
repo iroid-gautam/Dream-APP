@@ -36,10 +36,12 @@ class QuestionsToContemplateServices {
         const data = await QuestionsToContemplate.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'createdAt': -1 });
         const count = await commonService.totalDocuments(QuestionsToContemplate, data);
 
+        const total_records_with_filter = await commonService.totalDocuments(QuestionsToContemplate, search_query);
+
         return res.send({
             draw: draw,
             iTotalRecords: count,
-            iTotalDisplayRecords: count,
+            iTotalDisplayRecords: total_records_with_filter,
             aaData: data
         });
     }

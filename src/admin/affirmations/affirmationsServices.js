@@ -37,10 +37,12 @@ class AffirmationServices {
         const data = await Affirmation.find(search_value ? search_query : {}).skip(page).limit(limit).sort({ 'createdAt': -1 });
         const count = await commonService.totalDocuments(Affirmation, data);
 
+        const total_records_with_filter = await commonService.totalDocuments(Affirmation, search_query);
+
         return res.send({
             draw: draw,
             iTotalRecords: count,
-            iTotalDisplayRecords: count,
+            iTotalDisplayRecords: total_records_with_filter,
             aaData: data
         });
     }
