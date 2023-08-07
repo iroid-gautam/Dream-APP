@@ -11,7 +11,7 @@ padding-left: 0;">
                 <h6 class="m-0 font-weight-bold text-primary"></h6>
             </div>
             <div class="card-body">
-                <form id="insights" method="post" enctype='multipart/form-data' >
+                <form id="insights" method="post" enctype='multipart/form-data'>
                     <div class="form-group">
                         <label>Title : </label>
                         <input type="text" class="form-control" id="title" name="title"
@@ -24,8 +24,8 @@ padding-left: 0;">
                     </div>
                     <div class="form-group">
                         <label>Description : </label>
-                        <textarea class="form-control" id="description" name="description" placeholder="Enter Insights Description" rows="6"
-                            cols="33"></textarea>
+                        <textarea class="form-control" id="description" name="description"
+                            placeholder="Enter Insights Description" rows="6" cols="33"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary mt-3">Submit</button>
                 </form>
@@ -45,6 +45,13 @@ padding-left: 0;">
                 return value == '' || value.trim().length != 0;
             }, "No space please and don't leave it empty");
 
+            $.validator.addMethod("imageExtension", function (value, element) {
+                var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+                var fileExtension = value.split('.').pop().toLowerCase();
+                return $.inArray(fileExtension, allowedExtensions) !== -1;
+            }, "Please select a valid image file (JPG, JPEG, PNG)");
+
+
             $("#insights").validate({
                 rules: {
                     title: {
@@ -53,7 +60,7 @@ padding-left: 0;">
                     },
                     image: {
                         required: true,
-                        noSpace: true
+                        imageExtension: true
                     },
                     description: {
                         required: true,
