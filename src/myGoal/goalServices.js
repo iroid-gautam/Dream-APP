@@ -45,7 +45,20 @@ class GoalServices {
 
                 return { ...new GoalResource(insertGoal) };
             } else {
-                throw new BadRequestException("Please select image")
+                // throw new BadRequestException("Please select image")
+                const nullHabit = habitsId === undefined ? null : habitsId.split(',');
+
+                const insertGoal = await commonService.createOne(MyGoal, {
+                    userId: auth,
+                    name: name,
+                    type: type,
+                    description: description,
+                    startDate: startDate,
+                    endDate: endDate,
+                    habitsId: nullHabit
+                });
+
+                return { ...new GoalResource(insertGoal) };
             }
         } catch (err) {
             console.log(err);
