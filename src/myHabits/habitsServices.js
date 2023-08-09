@@ -119,7 +119,7 @@ class HabitsServices {
             const { frequency } = query;
             const filterHabit = frequency == -1 ? { userId: auth } : { userId: auth, frequency: frequency };
 
-            const findHabits = await MyHabits.find(filterHabit).skip(page * pageLimit).limit(pageLimit);
+            const findHabits = await MyHabits.find(filterHabit).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
             const totalDocument = await commonService.totalDocuments(MyHabits, filterHabit);
 
@@ -213,9 +213,9 @@ class HabitsServices {
 
             const { name } = data;
 
-            const filterHabit = name == '' ? { userId: auth } : { userId: auth, name: { $regex: name, $options: 'i' } };
+            const filterHabit = name == '' ? { userId: auth, markDone: false } : { userId: auth, name: { $regex: name, $options: 'i' }, markDone: false };
 
-            const findHabit = await MyHabits.find(filterHabit).skip(page * pageLimit).limit(pageLimit);;
+            const findHabit = await MyHabits.find(filterHabit).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
             const totalDocument = await commonService.totalDocuments(MyHabits, filterHabit);
 

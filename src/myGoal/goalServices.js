@@ -154,9 +154,9 @@ class GoalServices {
 
             const { name } = data;
 
-            const filterGoal = name == '' ? { userId: auth } : { userId: auth, name: { $regex: name, $options: 'i' } };
+            const filterGoal = name == '' ? { userId: auth, markDone: false } : { userId: auth, name: { $regex: name, $options: 'i' }, markDone: false };
 
-            const findGoal = await MyGoal.find(filterGoal).skip(page * pageLimit).limit(pageLimit);;
+            const findGoal = await MyGoal.find(filterGoal).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
             const totalDocument = await commonService.totalDocuments(MyGoal, filterGoal);
 
@@ -190,7 +190,7 @@ class GoalServices {
         const completeGoal = await commonService.totalDocuments(MyGoal, { userId: auth, markDone: true });
 
         const { markDone } = query;
-        const findGoal = await MyGoal.find({ userId: auth, markDone: markDone }).skip(page * pageLimit).limit(pageLimit);
+        const findGoal = await MyGoal.find({ userId: auth, markDone: markDone }).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
         const totalDocument = await commonService.totalDocuments(MyGoal, { userId: auth, markDone: markDone });
 
