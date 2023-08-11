@@ -75,6 +75,25 @@
                     <%= process.env.APP_URL_ADMIN %>/admin/login
                 </a>
                 <br>
+                <!-- <span class="badge badge-danger">Changes 19th July 2023</span> -->
+                <div class="row d-flex">
+                    <div class="col-lg-2">
+                        <h5 class="mt-4"><b> 11th Aug 2023 </b></h5>
+                    </div>
+                    <div class="col-lg-10 saprater">
+                        <h6 class="mt-4"> <span class="p-2 bg-light shadow rounded text-success">Version 1.0</span>
+                        </h6>
+                        <span class="badge badge-success">New Additions</span>
+                        <ul class="mt-2">
+                            <li class="text-muted ml-3 mb-2">
+                                <code>POST /user/email-change </code><br> ✓ Change email
+                            </li>
+                            <li class="text-muted ml-3 mb-2">
+                                <code>POST /user/verify-email-otp </code><br> ✓ Verify change email otp
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <div class="row d-flex">
                     <div class="col-lg-2">
                         <h5 class="mt-4"><b> 19th July 2023 </b></h5>
@@ -341,6 +360,7 @@
                                 <code>GET /user</code><br />
                                 ✓ user detail
                             </li>
+                            <span class="badge badge-danger">Changes 11th Aug 2023</span>
                             <li class="text-muted ml-3 mb-2">
                                 <code>PUT /user</code><br />
                                 ✓ edit user

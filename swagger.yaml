@@ -506,9 +506,9 @@ paths:
                 name:
                   type: string
                   example: tushar parmar
-                email:
-                  type: string
-                  example: tushar@mailinator.com
+                # email:
+                #   type: string
+                #   example: tushar@mailinator.com
       responses:
         "200":
           $ref: "#/components/responses/success"
@@ -577,6 +577,69 @@ paths:
           $ref: "#/components/responses/Success"
         "400":
           $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /user/email-change:
+    post:
+      description: Change email
+      summary: Change email
+      tags:
+        - Email
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: tushar@mailinator.com
+              required:
+                - email
+
+      responses:
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "200":
+          $ref: "#/components/responses/success"
+
+  /user/verify-email-otp:
+    post:
+      summary: Email OTP verification
+      description: |
+        - OTP verification
+      security:
+        - bearerAuth: []
+      tags:
+        - Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: tushar@mailinator.com
+                otp:
+                  type: integer
+                  example: 2356
+              required:
+                - email
+                - otp
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
         "404":
           $ref: "#/components/responses/NotFoundError"
 
@@ -1554,3 +1617,42 @@ paths:
   #         $ref: "#/components/responses/UnauthorizedError"
   #       "404":
   #         $ref: "#/components/responses/NotFoundError"
+
+  /subscription:
+    post:
+      deprecated: true
+      description: Callback after in app purchase
+      summary: Callback after in app purchase
+      tags:
+        - In App Purchase
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                packageName:
+                  type: string
+                  example: com.unlimited.now.mobile.app
+                productId:
+                  type: string
+                  example: com.unlimited.now.app.subscription.mothly1
+                purchaseToken:
+                  type: string
+                  example: ocdhnfmhknhmapbeecpfdfpg.AO-J1OxJ5_vQGUCExSTF0TMfu9lGD7esadhPKwwSOVAWx_BZur7tXnCB8WI_0u1J0sUotNhK9ZwlplDh6C0GtR8icUU0-zwGDcDCy02IFJIzAJk4mYA0fy41
+                platform:
+                  type: string
+                  example: Android
+                isTestEnvironment:
+                  type: boolean
+                  example: true
+      responses:
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "200":
+          $ref: "#/components/responses/success"

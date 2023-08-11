@@ -6,6 +6,10 @@ import bcrypt from "bcryptjs";
 import { BadRequestException, ConflictException, NotFoundException, UnprocesssableEntityException, } from "../common/error-exceptions";
 const { ObjectId } = require("mongodb");
 import { BCRYPT } from "../common/constants/constant";
+import AuthHelper from "../common/auth.helper";
+import sendMail from "../common/middlewares/send-mail.middleware";
+import Otp from "../../model/otp";
+import { OTPTYPE } from "../common/constants/constant";
 
 class UserService {
     /**
@@ -26,22 +30,98 @@ class UserService {
      * @param {*} data
      */
     static async update(data) {
-        if (data.reqData.email) {
-            const query = {
-                email: data.reqData.email,
-                _id: { $ne: data.user._id },
-            };
-            const checkExistEmail = await commonService.findOne(User, query);
+        // if (data.reqData.email) {
+        //     const query = {
+        //         email: data.reqData.email,
+        //         _id: { $ne: data.user._id },
+        //     };
+        //     const checkExistEmail = await commonService.findOne(User, query);
 
-            if (checkExistEmail) {
-                throw new ConflictException("Email already exist");
-            }
-        }
+        //     if (checkExistEmail) {
+        //         throw new ConflictException("Email already exist");
+        //     }
+        // }
         await commonService.updateOne(User, { _id: data.user._id }, data.reqData);
 
         return true;
     }
 
+
+
+
+    /**
+     * @description: Change email
+     * @param {*} auth 
+     * @param {*} data 
+     */
+    static async emailChange(auth, data) {
+        const { email } = data;
+        const checkEmailIsInUse = await commonService.findOne(User, {
+            email: email
+        });
+
+        if (checkEmailIsInUse) {
+            throw new ConflictException("Email address already in use.");
+        }
+
+        await commonService.updateById(User, auth, { isVerified: false });
+
+        const generateOTP = await AuthHelper.generateOTP();
+
+        const obj = {
+            to: email,
+            subject: `Verify Email`,
+            otp: generateOTP,
+            type: OTPTYPE.REGISTRATION_OTP,
+        };
+
+        const send = await sendMail(obj, "otp-mail");
+
+        if (send) {
+            const exitOtp = await commonService.findOne(Otp, { email: email });
+            if (exitOtp) {
+                await commonService.updateById(Otp, exitOtp._id, {
+                    email: email,
+                    otp: generateOTP,
+                    type: OTPTYPE.REGISTRATION_OTP,
+                });
+                return true;
+            } else {
+                await commonService.createOne(Otp, {
+                    email: email,
+                    otp: generateOTP,
+                    type: OTPTYPE.REGISTRATION_OTP,
+                });
+            }
+        }
+    }
+
+
+
+
+    /**
+     * @description: Email verified
+     * @param {*} auth 
+     * @param {*} data 
+     */
+    static async emailVerifyOTP(auth, data) {
+        const { email, otp } = data;
+        const findEmail = await commonService.findOne(Otp, { email: email });
+        if (!findEmail) {
+            throw new BadRequestException("Invalid email.");
+        } else {
+            if (otp == findEmail.otp) {
+                const updateStatus = await commonService.updateById(User, auth, {
+                    email: findEmail.email,
+                    isVerified: true
+                });
+                await commonService.findOneAndDelete(Otp, { email: email, otp: otp })
+            } else {
+                throw new BadRequestException("Invalid otp.");
+            }
+        }
+
+    }
 
 
     /**

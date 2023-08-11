@@ -34,6 +34,32 @@ class UserController {
     }
 
 
+
+    /**
+     * @description: Change email
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async emailChange(req, res) {
+        const data = await UserService.emailChange(req.user._id, req.body);
+        return res.send({ message: "OTP sent to your email address" })
+    }
+
+
+
+    /**
+     * @description: OTP verified
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async emailVerifyOTP(req, res) {
+        const data = await UserService.emailVerifyOTP(req.user, req.body);
+        return res.send({ message: "OTP verified successfully" });
+    }
+
+
+
     /**
        * @description: user picture update
        * @param {*} req 

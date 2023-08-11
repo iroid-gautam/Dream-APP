@@ -92,6 +92,21 @@ class commonService {
         const result = await model.findByIdAndDelete(id);
         return result;
     }
+
+
+    /*
+     * @description : delete any record in database by primary key
+     * @param  {object} model : mongodb model
+     * @param  {object} pk : primary field of table
+     * @return {object} result : database result
+     */
+
+    static async findOneAndDelete(model, data) {
+        // console.log(id);
+        const result = await model.findOneAndDelete(data);
+        return result;
+    }
+
 }
 
 export default commonService;
