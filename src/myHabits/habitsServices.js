@@ -224,6 +224,7 @@ class HabitsServices {
                 perPage: pageLimit,
                 currentPage: page + 1,
                 lastPage: Math.ceil(totalDocument / pageLimit),
+                habitsExits: totalDocument === 0 ? false : true
             }
 
             return { data: findHabit, meta: meta }

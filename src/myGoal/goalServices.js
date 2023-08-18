@@ -165,6 +165,7 @@ class GoalServices {
                 perPage: pageLimit,
                 currentPage: page + 1,
                 lastPage: Math.ceil(totalDocument / pageLimit),
+                goalsExits: totalDocument === 0 ? false : true
             }
 
             return { data: findGoal, meta: meta }
