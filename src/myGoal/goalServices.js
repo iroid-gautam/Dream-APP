@@ -159,13 +159,14 @@ class GoalServices {
             const findGoal = await MyGoal.find(filterGoal).skip(page * pageLimit).limit(pageLimit).sort({ createdAt: -1 });
 
             const totalDocument = await commonService.totalDocuments(MyGoal, filterGoal);
+            const exitsGoal = await MyGoal.countDocuments({ userId: auth });
 
             const meta = {
                 total: totalDocument,
                 perPage: pageLimit,
                 currentPage: page + 1,
                 lastPage: Math.ceil(totalDocument / pageLimit),
-                goalsExits: totalDocument === 0 ? false : true
+                goalsExits: exitsGoal === 0 ? false : true
             }
 
             return { data: findGoal, meta: meta }

@@ -219,12 +219,14 @@ class HabitsServices {
 
             const totalDocument = await commonService.totalDocuments(MyHabits, filterHabit);
 
+            const exitsHabit = await MyGoal.countDocuments({ userId: auth });
+
             const meta = {
                 total: totalDocument,
                 perPage: pageLimit,
                 currentPage: page + 1,
                 lastPage: Math.ceil(totalDocument / pageLimit),
-                habitsExits: totalDocument === 0 ? false : true
+                habitsExits: exitsHabit === 0 ? false : true
             }
 
             return { data: findHabit, meta: meta }
