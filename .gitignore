@@ -2,8 +2,6 @@ node_modules
 .env
 media
 
-firebase-adminsdk.json
-
 public/goalImage
 public/myJournal
 public/ourInsights
