@@ -10,6 +10,9 @@ import AuthHelper from "../common/auth.helper";
 import sendMail from "../common/middlewares/send-mail.middleware";
 import Otp from "../../model/otp";
 import { OTPTYPE } from "../common/constants/constant";
+import UserSubscription from "../../model/userSubscription";
+import { auth } from "firebase-admin";
+import moment from "moment";
 
 class UserService {
     /**
@@ -19,7 +22,29 @@ class UserService {
     static async index(user) {
         if (ObjectId.isValid(user._id)) {
             const data = await commonService.findOne(User, { _id: user._id });
-            return data;
+
+            let isSub = false;
+            const subscriedUser = await UserSubscription.findOne({
+                userId: user._id,
+                cancelledAt: null,
+                // $expr: {
+                //     $eq: [
+                //         { $dateToString: { format: '%Y-%m-%d', date: '$$NOW' } },
+                //         { $dateToString: { format: '%Y-%m-%d', date: '$expiryDate' } },
+                //     ],
+                // },
+            });
+
+            const currentDate = moment().format('YYYY-MM-DD HH:mm');
+            if (subscriedUser) {
+                const match = moment(subscriedUser.expiryDate).format('YYYY-MM-DD HH:mm');
+                if (currentDate <= match) {
+                    console.log("success");
+                    isSub = true
+                }
+            }
+
+            return { data, isSub };
         } else {
             throw new UnprocesssableEntityException("User id invalid");
         }

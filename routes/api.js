@@ -6,6 +6,9 @@ import validator from "../src/common/config/joi-validator";
 import registerPushToken from "../src/fcmToken/token.controller";
 import userRoutes from "../src/user/user.routes";
 
+// Webhook
+import inAppPurchaseWebhook from "../src/inAppPurchase/planController";
+
 const router = express.Router();
 
 router.use("/auth", authRoutes);
@@ -23,5 +26,11 @@ router.use('/ourInsights', authenticate, require('../src/ourInsights/insightsRou
 
 router.use('/videoAndPodcasts', authenticate, require("../src/videoAndPodcasts/videoPodRouter"));
 router.use('/allCardsListing', authenticate, require("../src/allCardsListing/allCardsListingRouter"));
+
+router.use('/subscription', authenticate, require("../src/inAppPurchase/planRouter"));
+
+// Webhook
+router.post("/ios/webhook", inAppPurchaseWebhook.iOSManualSubscriptionWebhook);
+router.post("/android/webhook", inAppPurchaseWebhook.androidManualSubscriptionWebhook);
 
 export default router;

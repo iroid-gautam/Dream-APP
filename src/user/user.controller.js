@@ -1,5 +1,6 @@
 import UserService from "./user.service";
 import { baseUrl } from "../common/constants/constant";
+import GetUserProfileResource from "./resources/getUserProfile";
 
 class UserController {
     /**
@@ -8,12 +9,12 @@ class UserController {
      * @param {*} res
      */
     static async index(req, res) {
-        const data = await UserService.index(req.user);
+        const { data, isSub } = await UserService.index(req.user);
 
         if (data.profileImage) {
             data.profileImage = data.profileImage ? baseUrl(data.profileImage) : null;
         }
-        return res.send({ data: data });
+        return res.send({ data: new GetUserProfileResource(data, isSub) });
     }
 
     /**

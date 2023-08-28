@@ -1620,7 +1620,7 @@ paths:
 
   /subscription:
     post:
-      deprecated: true
+      # deprecated: true
       description: Callback after in app purchase
       summary: Callback after in app purchase
       tags:
@@ -1656,3 +1656,22 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "200":
           $ref: "#/components/responses/success"
+
+    get:
+      summary: Get user subscription
+      tags:
+        - In App Purchase
+      security:
+        - bearerAuth: []
+      # parameters:
+      #   - in: query
+      #     name: isTestEnvironment
+      #     required: true
+      #     schema:
+      #       type: boolean
+      #       example: true
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
