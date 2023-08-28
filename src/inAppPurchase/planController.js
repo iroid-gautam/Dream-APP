@@ -11,7 +11,7 @@ class PlanController {
      */
     static async purchaseSubscription(req, res) {
         const data = await PlanServices.purchaseSubscription(req.user._id, req.body, req, res);
-        return res.send({ data: data });
+        return res.send({ message: "Success" });
     }
 
 
@@ -28,16 +28,8 @@ class PlanController {
             // isTestEnvironment
         );
 
-        if (subscription) {
-            const date = new Date(moment(subscription.purchaseDate).add(30, "days"));
-            var freeUntill = date.getTime();
-        }
-
-        console.log(freeUntill);
-
         const data = subscription ? {
             expiryDate: moment(subscription.expiryDate).unix(),
-            freeUntill,
             isFreeTrialUse: subscription.isFreeTrialUse,
         } : null
 
