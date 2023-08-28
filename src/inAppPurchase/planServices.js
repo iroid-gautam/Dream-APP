@@ -16,10 +16,10 @@ class PlanServices {
 
         const iap = await InAppPurchase.verifyInAppReceipt(data, isTestEnvironment);
 
-        const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" });
+        const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
 
         if (findSubscription) {
-            throw new BadRequestException("This user already purchase subscription")
+            throw new BadRequestException(`This subscription is already associate with this email :- ${findSubscription.userId.email}`);
         } else {
             const checkUserIsSubscribe = await UserSubscription.findOne({ userId: auth, cancelledAt: null });
 

@@ -7,7 +7,7 @@ export default class GetUserProfileResource {
             _id: data._id,
             name: data.name,
             email: data.email,
-            profileImage: data.profileImage !== null ? baseUrl(data.profileImage) : null,
+            profileImage: data.profileImage ? baseUrl(data.profileImage) : null,
             isVerified: data.isVerified,
             // isSubscription: subscribed ? true : false
             isSubscribed: subscribed

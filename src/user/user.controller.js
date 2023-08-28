@@ -11,9 +11,6 @@ class UserController {
     static async index(req, res) {
         const { data, isSub } = await UserService.index(req.user);
 
-        if (data.profileImage) {
-            data.profileImage = data.profileImage ? baseUrl(data.profileImage) : null;
-        }
         return res.send({ data: new GetUserProfileResource(data, isSub) });
     }
 
