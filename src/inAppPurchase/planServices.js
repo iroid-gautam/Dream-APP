@@ -102,8 +102,18 @@ class PlanServices {
      */
     static async getSubscription(auth, isTestEnvironment) {
         // console.log(auth, isTestEnvironment);
-        const findSubscription = await UserSubscription.findOne({ userId: auth });
-        return findSubscription;
+        const currentDate = moment().format('YYYY-MM-DD HH:mm');
+        const findSubscription = await UserSubscription.findOne({
+            userId: auth
+        });
+
+        if (findSubscription) {
+            const match = moment(findSubscription.expiryDate).format('YYYY-MM-DD HH:mm');
+            if (currentDate <= match) {
+                return findSubscription;
+            }
+        }
+        return
     }
 
 
