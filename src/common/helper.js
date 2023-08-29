@@ -82,7 +82,7 @@ export const PremiumUserFind = async (auth) => {
         cancelledAt: null,
     });
 
-    const currentDate = moment().format('YYYY-MM-DD');
+    const currentDate = moment().format('YYYY-MM-DD HH:mm');
     if (subscriedUser) {
         const match = moment(subscriedUser.expiryDate).format('YYYY-MM-DD HH:mm');
         if (currentDate <= match) {
