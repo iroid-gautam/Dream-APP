@@ -49,7 +49,7 @@ class HabitsServices {
                 }
             })
 
-            if (alreadyAdd.length > 3) {
+            if (alreadyAdd.length > 2) {
                 throw new BadRequestException("Please purchase premium plan and unlimited habits create")
             } else {
                 const nullGoal = goalId === '' ? null : goalId;
