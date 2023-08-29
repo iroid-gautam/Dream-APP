@@ -10,7 +10,9 @@ import mongoose from "mongoose";
 import { BadRequestException } from "../common/error-exceptions";
 import FlippedCards from "../../model/flippedCards";
 import AllCardsListingResource from "./resources/allCardsListingResources";
-
+import UserSubscription from "../../model/userSubscription";
+import moment from "moment";
+import { PremiumUserFind } from "../common/helper";
 class AllCardsListingServices {
     /**
      * @description: get all cards listing
@@ -153,13 +155,43 @@ class AllCardsListingServices {
      * @param {*} res 
      * @returns 
      */
-    static async flippedCardsAdd(auth, id, req, res) {
+    static async flippedCardsAdd(auth, id, type) {
         if (mongoose.Types.ObjectId.isValid(id)) {
-            const createFlip = await commonService.createOne(FlippedCards, {
-                userId: auth,
-                cardId: id
-            });
-            return createFlip;
+
+            const isSub = await PremiumUserFind(auth);
+
+            if (isSub === true) {
+                const createFlip = await commonService.createOne(FlippedCards, {
+                    userId: auth,
+                    cardId: id,
+                    type: type
+                });
+                return createFlip;
+            } else {
+                const currentDate = moment().format('YYYY-MM-DD');
+                const alreadyAdd = await FlippedCards.find({
+                    userId: auth,
+                    type: type,
+                    $expr: {
+                        $eq: [
+                            { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                            { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                        ]
+                    }
+                })
+
+                if (alreadyAdd.length > 0) {
+                    throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                } else {
+                    const createFlip = await commonService.createOne(FlippedCards, {
+                        userId: auth,
+                        cardId: id,
+                        type: type
+                    });
+                    return createFlip;
+                }
+            }
+
         } else {
             throw new BadRequestException("Please provide correct card id")
         }

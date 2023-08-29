@@ -1,6 +1,8 @@
 import { baseUrl, HABITTYPE } from "../common/constants/constant";
 import FcmHelper from "./fcmHelper";
 import FcmToken from "../../model/fcmToken";
+import UserSubscription from "../../model/userSubscription";
+import moment from "moment";
 
 /**
  * App logo
@@ -67,4 +69,27 @@ export const sendPushNotificationHabit = async (status, auth, frequency, habitId
 
 
     await FcmHelper.sendPushNotification(tokens, payload)
-}  
+}
+
+
+
+
+// Premium user
+export const PremiumUserFind = async (auth) => {
+    let isSub = false;
+    const subscriedUser = await UserSubscription.findOne({
+        userId: auth,
+        cancelledAt: null,
+    });
+
+    const currentDate = moment().format('YYYY-MM-DD');
+    if (subscriedUser) {
+        const match = moment(subscriedUser.expiryDate).format('YYYY-MM-DD HH:mm');
+        if (currentDate <= match) {
+            console.log("success");
+            isSub = true
+        }
+    }
+
+    return isSub
+}

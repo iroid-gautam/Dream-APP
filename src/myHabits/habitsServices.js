@@ -5,6 +5,8 @@ import { BadRequestException, NotFoundException } from "../common/error-exceptio
 import MyGoal from "../../model/myGoal";
 import SingleHabitResource from "./resources/singleHabitResource";
 import HabitListingResource from "./resources/habitListingResources";
+import { PremiumUserFind } from "../common/helper";
+import moment from "moment";
 
 
 class HabitsServices {
@@ -18,7 +20,10 @@ class HabitsServices {
      */
     static async addHabits(auth, data, req, res) {
         const { name, frequency, days, description, startDate, goalId } = data;
-        try {
+        // try {
+        const isSub = await PremiumUserFind(auth);
+
+        if (isSub === true) {
             const nullGoal = goalId === '' ? null : goalId;
             const addhabit = await commonService.createOne(MyHabits, {
                 userId: auth,
@@ -31,10 +36,41 @@ class HabitsServices {
             });
 
             return { ...new SingleHabitResource(addhabit) }
-        } catch (err) {
-            console.log(err);
-            throw new BadRequestException("Habit not created")
+
+        } else {
+            const currentDate = moment().format('YYYY-MM-DD');
+            const alreadyAdd = await MyHabits.find({
+                userId: auth,
+                $expr: {
+                    $eq: [
+                        { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                    ]
+                }
+            })
+
+            if (alreadyAdd.length > 3) {
+                throw new BadRequestException("Please purchase premium plan and unlimited habits create")
+            } else {
+                const nullGoal = goalId === '' ? null : goalId;
+                const addhabit = await commonService.createOne(MyHabits, {
+                    userId: auth,
+                    name: name,
+                    frequency: frequency,
+                    days: days,
+                    description: description,
+                    startDate: startDate,
+                    goalId: nullGoal
+                });
+
+                return { ...new SingleHabitResource(addhabit) }
+            }
         }
+
+        // } catch (err) {
+        //     console.log(err);
+        //     throw new BadRequestException("Habit not created")
+        // }
         // if (mongoose.Types.ObjectId.isValid(goalId)) {
         // const findGoal = await commonService.findByPk(MyGoal, goalId);
         // if (findGoal) {

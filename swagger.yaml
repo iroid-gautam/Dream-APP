@@ -1557,6 +1557,7 @@ paths:
   /allCardsListing/flipCard/{cardId}:
     post:
       summary: Flipped cards
+      description: 1 => Inspiration quotes , 2 => affiarmation , 3 => question & conte , 4 => strategy , 5 => little paw
       tags:
         - All Card Listing
       security:
@@ -1568,7 +1569,17 @@ paths:
           schema:
             type: string
             example: 63bd4dcff9e5e2f0107cb2f6
-
+        - in: query
+          name: types
+          required: true
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
       responses:
         "200":
           $ref: "#/components/responses/Success"

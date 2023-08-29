@@ -13,6 +13,7 @@ import { OTPTYPE } from "../common/constants/constant";
 import UserSubscription from "../../model/userSubscription";
 import { auth } from "firebase-admin";
 import moment from "moment";
+import { PremiumUserFind } from "../common/helper";
 
 class UserService {
     /**
@@ -23,26 +24,7 @@ class UserService {
         if (ObjectId.isValid(user._id)) {
             const data = await commonService.findOne(User, { _id: user._id });
 
-            let isSub = false;
-            const subscriedUser = await UserSubscription.findOne({
-                userId: user._id,
-                cancelledAt: null,
-                // $expr: {
-                //     $eq: [
-                //         { $dateToString: { format: '%Y-%m-%d', date: '$$NOW' } },
-                //         { $dateToString: { format: '%Y-%m-%d', date: '$expiryDate' } },
-                //     ],
-                // },
-            });
-
-            const currentDate = moment().format('YYYY-MM-DD HH:mm');
-            if (subscriedUser) {
-                const match = moment(subscriedUser.expiryDate).format('YYYY-MM-DD HH:mm');
-                if (currentDate <= match) {
-                    console.log("success");
-                    isSub = true
-                }
-            }
+            const isSub = await PremiumUserFind(user._id);
 
             return { data, isSub };
         } else {

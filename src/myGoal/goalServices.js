@@ -4,6 +4,8 @@ import commonService from "../../utils/commonServices";
 import { BadRequestException, NotFoundException } from "../common/error-exceptions"
 import GoalResource from "./resources/goalResource";
 import GoalProgressCompleteListingResource from "./resources/progressCompleteResource";
+import { PremiumUserFind } from "../common/helper";
+import moment from "moment";
 
 class GoalServices {
     /**
@@ -27,7 +29,10 @@ class GoalServices {
         //     }
         // })
 
-        try {
+        // try {
+        const isSub = await PremiumUserFind(auth);
+
+        if (isSub === true) {
             const nullHabit = habitsId === undefined ? null : habitsId.split(',')
 
             if (file) {
@@ -60,10 +65,60 @@ class GoalServices {
 
                 return { ...new GoalResource(insertGoal) };
             }
-        } catch (err) {
-            console.log(err);
-            throw new BadRequestException("Goal not created")
+        } else {
+            const currentDate = moment().format('YYYY-MM-DD');
+            const alreadyAdd = await MyGoal.find({
+                userId: auth,
+                $expr: {
+                    $eq: [
+                        { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                        { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                    ]
+                }
+            })
+
+            if (alreadyAdd.length > 0) {
+                throw new BadRequestException("Please purchase premium plan and unlimited goals create")
+            } else {
+                const nullHabit = habitsId === undefined ? null : habitsId.split(',')
+
+                if (file) {
+                    const image = `goalImage/${file.filename}`;
+                    const insertGoal = await commonService.createOne(MyGoal, {
+                        userId: auth,
+                        name: name,
+                        type: type,
+                        description: description,
+                        startDate: startDate,
+                        endDate: endDate,
+                        image: image,
+                        habitsId: nullHabit
+                    });
+
+                    return { ...new GoalResource(insertGoal) };
+                } else {
+                    // throw new BadRequestException("Please select image")
+                    const nullHabit = habitsId === undefined ? null : habitsId.split(',');
+
+                    const insertGoal = await commonService.createOne(MyGoal, {
+                        userId: auth,
+                        name: name,
+                        type: type,
+                        description: description,
+                        startDate: startDate,
+                        endDate: endDate,
+                        habitsId: nullHabit
+                    });
+
+                    return { ...new GoalResource(insertGoal) };
+                }
+            }
         }
+
+        // } catch (err) {
+        //     console.log(err);
+        //     throw new BadRequestException("Goal not created")
+        // }
     }
 
 

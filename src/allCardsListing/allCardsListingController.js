@@ -21,7 +21,7 @@ class AllCardsListingController {
      * @returns 
      */
     static async flippedCardsAdd(req, res) {
-        const data = await AllCardsListingServices.flippedCardsAdd(req.user._id, req.params.id, req, res);
+        const data = await AllCardsListingServices.flippedCardsAdd(req.user._id, req.params.id, req.query.types);
         return res.send({ message: "Card flipped" });
     }
 }
