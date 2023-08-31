@@ -10,4 +10,9 @@ router.use("/api/v1", apiRoutes);
 
 router.use("/", webRoutes);
 
+
+router.get("/admin", (req, res) => {
+    return res.redirect('/admin/login')
+});
+
 export default router;
