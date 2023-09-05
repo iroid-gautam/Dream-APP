@@ -18,6 +18,7 @@ export default class AllCardsListingResource {
             visible: flip !== null ? true : false,
             frontImage: data[0].frontImage !== null ? baseUrl(data[0].frontImage) : null,
             flipImage: data[0].flipImage !== null ? baseUrl(data[0].flipImage) : null,
+            video: data[0].videos ? data[0].videos.length > 0 ? baseUrl(data[0].videos[0].videoPodcast) : null : null
         })
     }
 }

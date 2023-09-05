@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const questionSchema = mongoose.Schema({
+const questionSchema = new mongoose.Schema({
     type: {
         type: String,           // Clarity | Courage | Activation
         trim: true,
@@ -15,7 +15,12 @@ const questionSchema = mongoose.Schema({
         type: String,
         trim: true,
         default: null
-    }
+    },
+    videoRef: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'videopodcast',
+        default: null
+    },
 }, { timestamps: true });
 
 const QuestionsToContemplate = mongoose.model('questionstocontemplate', questionSchema);

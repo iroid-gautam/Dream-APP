@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import commonService from "../../../utils/commonServices";
 import QuestionsToContemplate from "../../../model/questions";
+import VideoPodcasts from "../../../model/videoAndPodcasts";
 
 class QuestionsToContemplateServices {
     /**
@@ -55,7 +56,8 @@ class QuestionsToContemplateServices {
      * @returns 
      */
     static async addQuestionsPage(req, res) {
-        return res.render('admin/questionsToConte/add');
+        const videos = await VideoPodcasts.find({ type: '1' });
+        return res.render('admin/questionsToConte/add', { "videos": videos });
     }
 
 
@@ -76,6 +78,7 @@ class QuestionsToContemplateServices {
 
         data.frontImage = front
         data.flipImage = flip
+        data.videoRef = data.videoRef ? data.videoRef : null
 
         const storeInspiration = await commonService.createOne(QuestionsToContemplate, data);
 

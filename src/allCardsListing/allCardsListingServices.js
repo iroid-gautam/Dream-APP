@@ -80,7 +80,15 @@ class AllCardsListingServices {
             // Questions to contemplate
             const random = await QuestionsToContemplate.aggregate([
                 { $match: { type: type } },
-                { $sample: { size: 1 } }
+                { $sample: { size: 1 } },
+                {
+                    $lookup: {
+                        from: "videopodcasts",
+                        localField: "videoRef",
+                        foreignField: "_id",
+                        as: "videos"
+                    }
+                }
             ]);
 
             if (random.length === 0) {
@@ -98,7 +106,15 @@ class AllCardsListingServices {
             // Strategy
             const random = await Strategy.aggregate([
                 { $match: { type: type } },
-                { $sample: { size: 1 } }
+                { $sample: { size: 1 } },
+                {
+                    $lookup: {
+                        from: "videopodcasts",
+                        localField: "videoRef",
+                        foreignField: "_id",
+                        as: "videos"
+                    }
+                }
             ]);
 
             if (random.length === 0) {

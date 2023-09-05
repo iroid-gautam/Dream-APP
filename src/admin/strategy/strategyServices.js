@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import Strategy from "../../../model/strategy";
 import commonService from "../../../utils/commonServices";
+import VideoPodcasts from "../../../model/videoAndPodcasts";
 
 class StrategyServices {
     /**
@@ -55,7 +56,8 @@ class StrategyServices {
      * @returns 
      */
     static async addStrategyPage(req, res) {
-        return res.render('admin/strategy/addStrategy');
+        const videos = await VideoPodcasts.find({ type: '1' });
+        return res.render('admin/strategy/addStrategy', { 'videos': videos });
     }
 
 
@@ -76,6 +78,7 @@ class StrategyServices {
 
         data.frontImage = front
         data.flipImage = flip
+        data.videoRef = data.videoRef ? data.videoRef : null
 
         const storeInspiration = await commonService.createOne(Strategy, data);
 
