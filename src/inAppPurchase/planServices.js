@@ -25,7 +25,44 @@ class PlanServices {
         const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
 
         if (findSubscription) {
-            throw new BadRequestException(`This subscription is already associate with this email :- ${findSubscription.userId.email}`);
+            const currentDate = moment().format('YYYY-MM-DD HH:mm');
+            const match = moment(findSubscription.expiryDate).format('YYYY-MM-DD HH:mm');
+            if (currentDate <= match) {
+                throw new BadRequestException(`This subscription is already associate with other user`);
+            }
+
+            let isFreeTrialUse = false;
+            if (platform == "Android") {
+                if (iap.paymentState === 2) {
+                    isFreeTrialUse = true;
+                }
+            } else if (platform == "iOS") {
+                if (iap.isTrial == true) {
+                    isFreeTrialUse = true;
+                }
+            }
+
+            const updateUser = await UserSubscription.updateOne({ originalTransactionId: iap.originalTransactionId }, {
+                userId: auth,
+                orderId: iap.order,
+                originalTransactionId: iap.originalTransactionId
+                    ? iap.originalTransactionId
+                    : null,
+                purchaseToken: purchaseToken,
+                purchaseDate: moment
+                    .unix(iap.startTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                purchasePlatform: platform,
+                autoRenewing: iap.autoRenewing,
+                expiryDate: moment
+                    .unix(iap.expiryTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                receipt: iap,
+                isFreeTrialUse
+            })
+
         } else {
             const checkUserIsSubscribe = await UserSubscription.findOne({ userId: auth, cancelledAt: null });
 
@@ -62,7 +99,7 @@ class PlanServices {
                     isFreeTrialUse
                 });
 
-                console.log("create subscription", create);
+                // console.log("create subscription", create);
             } else {
                 let isFreeTrialUse = undefined;
                 if (data.platform == "Android") {
@@ -95,7 +132,7 @@ class PlanServices {
                     isFreeTrialUse
                 })
 
-                console.log("alreadyExist sub update", alreadyExist);
+                // console.log("alreadyExist sub update", alreadyExist);
 
             }
         }
