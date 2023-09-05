@@ -14,87 +14,91 @@ class PlanServices {
     static async purchaseSubscription(auth, data, req, res) {
         const { packageName, productId, purchaseToken, platform, isTestEnvironment } = data
 
+        console.log("purchaseToken", purchaseToken);
+        console.log("packageName", packageName);
+        console.log("productId", productId);
+
         const iap = await InAppPurchase.verifyInAppReceipt(data, isTestEnvironment);
 
         console.log("Subscription purchase POST API", iap);
 
-        const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
+        // const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
 
-        if (findSubscription) {
-            throw new BadRequestException(`This subscription is already associate with this email :- ${findSubscription.userId.email}`);
-        } else {
-            const checkUserIsSubscribe = await UserSubscription.findOne({ userId: auth, cancelledAt: null });
+        // if (findSubscription) {
+        //     throw new BadRequestException(`This subscription is already associate with this email :- ${findSubscription.userId.email}`);
+        // } else {
+        const checkUserIsSubscribe = await UserSubscription.findOne({ userId: auth, cancelledAt: null });
 
-            if (!checkUserIsSubscribe) {
-                let isFreeTrialUse = false;
-                if (platform == "Android") {
-                    if (iap.paymentState === 2) {
-                        isFreeTrialUse = true;
-                    }
-                } else if (platform == "iOS") {
-                    if (iap.isTrial == true) {
-                        isFreeTrialUse = true;
-                    }
+        if (!checkUserIsSubscribe) {
+            let isFreeTrialUse = false;
+            if (platform == "Android") {
+                if (iap.paymentState === 2) {
+                    isFreeTrialUse = true;
                 }
-
-                const create = await UserSubscription.create({
-                    userId: auth,
-                    orderId: iap.order,
-                    originalTransactionId: iap.originalTransactionId
-                        ? iap.originalTransactionId
-                        : null,
-                    purchaseToken: purchaseToken,
-                    purchaseDate: moment
-                        .unix(iap.startTimeMillis / 1000)
-                        .utc()
-                        .format("YYYY-MM-DD HH:mm:ss"),
-                    purchasePlatform: platform,
-                    autoRenewing: iap.autoRenewing,
-                    expiryDate: moment
-                        .unix(iap.expiryTimeMillis / 1000)
-                        .utc()
-                        .format("YYYY-MM-DD HH:mm:ss"),
-                    receipt: iap,
-                    isFreeTrialUse
-                });
-
-                console.log("create subscription", create);
-            } else {
-                let isFreeTrialUse = undefined;
-                if (data.platform == "Android") {
-                    if (iap.paymentState === 2) {
-                        isFreeTrialUse = true;
-                    }
-                } else if (data.platform == "iOS") {
-                    if (iap.isTrial == true) {
-                        isFreeTrialUse = true;
-                    }
+            } else if (platform == "iOS") {
+                if (iap.isTrial == true) {
+                    isFreeTrialUse = true;
                 }
-
-                const alreadyExist = await UserSubscription.updateOne({ userId: auth }, {
-                    orderId: iap.order,
-                    originalTransactionId: iap.originalTransactionId
-                        ? iap.originalTransactionId
-                        : null,
-                    purchaseToken: purchaseToken,
-                    purchaseDate: moment
-                        .unix(iap.startTimeMillis / 1000)
-                        .utc()
-                        .format("YYYY-MM-DD HH:mm:ss"),
-                    purchasePlatform: platform,
-                    autoRenewing: iap.autoRenewing,
-                    expiryDate: moment
-                        .unix(iap.expiryTimeMillis / 1000)
-                        .utc()
-                        .format("YYYY-MM-DD HH:mm:ss"),
-                    receipt: iap,
-                    isFreeTrialUse
-                })
-
-                console.log("alreadyExist sub update", alreadyExist);
-
             }
+
+            const create = await UserSubscription.create({
+                userId: auth,
+                orderId: iap.order,
+                originalTransactionId: iap.originalTransactionId
+                    ? iap.originalTransactionId
+                    : null,
+                purchaseToken: purchaseToken,
+                purchaseDate: moment
+                    .unix(iap.startTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                purchasePlatform: platform,
+                autoRenewing: iap.autoRenewing,
+                expiryDate: moment
+                    .unix(iap.expiryTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                receipt: iap,
+                isFreeTrialUse
+            });
+
+            console.log("create subscription", create);
+        } else {
+            let isFreeTrialUse = undefined;
+            if (data.platform == "Android") {
+                if (iap.paymentState === 2) {
+                    isFreeTrialUse = true;
+                }
+            } else if (data.platform == "iOS") {
+                if (iap.isTrial == true) {
+                    isFreeTrialUse = true;
+                }
+            }
+
+            const alreadyExist = await UserSubscription.updateOne({ userId: auth }, {
+                orderId: iap.order,
+                originalTransactionId: iap.originalTransactionId
+                    ? iap.originalTransactionId
+                    : null,
+                purchaseToken: purchaseToken,
+                purchaseDate: moment
+                    .unix(iap.startTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                purchasePlatform: platform,
+                autoRenewing: iap.autoRenewing,
+                expiryDate: moment
+                    .unix(iap.expiryTimeMillis / 1000)
+                    .utc()
+                    .format("YYYY-MM-DD HH:mm:ss"),
+                receipt: iap,
+                isFreeTrialUse
+            })
+
+            console.log("alreadyExist sub update", alreadyExist);
+
         }
+        // }
     }
 
 
@@ -138,7 +142,7 @@ class PlanServices {
             console.log("IOS data", data);
             if (data) {
                 await UserSubscription.updateOne({ originalTransactionId: data.original_transaction_id }, {
-                    expiryDate: data.expires_date,
+                    expiryDate: data.expires_date_ms,
                 });
             }
         }
