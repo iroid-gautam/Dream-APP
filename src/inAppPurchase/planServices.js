@@ -16,6 +16,8 @@ class PlanServices {
 
         const iap = await InAppPurchase.verifyInAppReceipt(data, isTestEnvironment);
 
+        console.log("Subscription purchase POST API", iap);
+
         const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
 
         if (findSubscription) {
@@ -35,7 +37,7 @@ class PlanServices {
                     }
                 }
 
-                await UserSubscription.create({
+                const create = await UserSubscription.create({
                     userId: auth,
                     orderId: iap.order,
                     originalTransactionId: iap.originalTransactionId
@@ -55,6 +57,8 @@ class PlanServices {
                     receipt: iap,
                     isFreeTrialUse
                 });
+
+                console.log("create subscription", create);
             } else {
                 let isFreeTrialUse = undefined;
                 if (data.platform == "Android") {
@@ -67,7 +71,7 @@ class PlanServices {
                     }
                 }
 
-                await UserSubscription.updateOne({ userId: auth }, {
+                const alreadyExist = await UserSubscription.updateOne({ userId: auth }, {
                     orderId: iap.order,
                     originalTransactionId: iap.originalTransactionId
                         ? iap.originalTransactionId
@@ -86,6 +90,8 @@ class PlanServices {
                     receipt: iap,
                     isFreeTrialUse
                 })
+
+                console.log("alreadyExist sub update", alreadyExist);
 
             }
         }
@@ -129,10 +135,10 @@ class PlanServices {
 
         if (purchasedSubscription) {
             const data = purchasedSubscription.unified_receipt.latest_receipt_info[0];
-            console.log("data", data);
+            console.log("IOS data", data);
             if (data) {
-                await UserSubscription.updateOne({ originalTransactionId: data.originalTransactionId }, {
-                    expiryDate: data.expiryDate,
+                await UserSubscription.updateOne({ originalTransactionId: data.original_transaction_id }, {
+                    expiryDate: data.expires_date,
                 });
             }
         }
