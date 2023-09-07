@@ -208,8 +208,8 @@ class MentalStateServices {
                         { $dateToString: { format: "%Y-%m-%d", date: { $toDate: i } } }
                     ]
                 }
-            });
-            dates.push({ date: moment(i).unix(), score: findLast3Week ? findLast3Week.score : 0 })
+            }).populate("emojiId");
+            dates.push({ date: moment(i).unix(), score: findLast3Week ? findLast3Week.score : 0, emoji: findLast3Week ? findLast3Week.emojiId.emoji : null })
         }
 
         // ---------------------------------------------------------------
