@@ -41,22 +41,22 @@ class MentalStateServices {
      * @returns 
      */
     static async addMentalScore(auth, data, req, res) {
-        const { emojiId, score } = data;
+        const { emojiId } = data;
 
         if (mongoose.Types.ObjectId.isValid(emojiId)) {
             const emojiFind = await commonService.findOne(Emojis, { _id: emojiId });
             if (emojiFind) {
-                if (score < 11) {
-                    const addScore = await commonService.createOne(MentalState, {
-                        userId: auth,
-                        score: score,
-                        emojiId: emojiFind._id
-                    });
+                // if (score < 11) {
+                const addScore = await commonService.createOne(MentalState, {
+                    userId: auth,
+                    // score: score,
+                    emojiId: emojiFind._id
+                });
 
-                    return addScore;
-                } else {
-                    throw new BadRequestException('Only add 1 to 10 score')
-                }
+                return addScore;
+                // } else {
+                //     throw new BadRequestException('Only add 1 to 10 score')
+                // }
 
             } else {
                 throw new NotFoundException("This emoji is not found")
@@ -209,7 +209,7 @@ class MentalStateServices {
                     ]
                 }
             }).populate("emojiId");
-            dates.push({ date: moment(i).unix(), score: findLast3Week ? findLast3Week.score : 0, emoji: findLast3Week ? findLast3Week.emojiId.emoji : null })
+            dates.push({ date: moment(i).unix(), emoji: findLast3Week ? findLast3Week.emojiId.emoji : null })
         }
 
         // ---------------------------------------------------------------

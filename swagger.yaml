@@ -676,12 +676,12 @@ paths:
                 emojiId:
                   type: string
                   example: 6454abfd803eb158f513b2b8
-                score:
-                  type: integer
-                  example: 1
+                # score:
+                #   type: integer
+                #   example: 1
               required:
                 - emojiId
-                - score
+                # - score
 
       responses:
         "200":
@@ -709,6 +709,7 @@ paths:
   /mentalState/overAllScore:
     get:
       summary: Get Over All Score
+      deprecated: true
       tags:
         - Mental State
       security:
@@ -1405,6 +1406,11 @@ paths:
           schema:
             type: integer
             example: 10
+        # - in: query
+        #   name: search
+        #   schema:
+        #     type: string
+        #     example: Search blog
 
       responses:
         "200":

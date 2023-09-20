@@ -5,10 +5,10 @@ const mentalStateSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'
     },
-    score: {
-        type: Number,
-        required: true
-    },
+    // score: {
+    //     type: Number,
+    //     required: true
+    // },
     emojiId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'emoji'
