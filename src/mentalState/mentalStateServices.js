@@ -209,7 +209,7 @@ class MentalStateServices {
                     ]
                 }
             }).populate("emojiId");
-            dates.push({ date: moment(i).unix(), emoji: findLast3Week ? findLast3Week.emojiId.emoji : null })
+            dates.push({ date: moment(i).unix(), emoji: findLast3Week ? findLast3Week.emojiId.emoji : "" })
         }
 
         // ---------------------------------------------------------------
