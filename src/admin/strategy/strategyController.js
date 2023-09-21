@@ -56,6 +56,28 @@ class StrategyController {
     static async deleteStrategy(req, res) {
         await StrategyServices.deleteStrategy(req.params.id, req, res);
     }
+
+
+
+    /**
+     * @description: Strategy update page
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async editStrategyPage(req, res) {
+        await StrategyServices.editStrategyPage(req.params.id, req, res);
+    }
+
+
+
+    /**
+     * @description: Edit strategy
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async editStrategy(req, res) {
+        await StrategyServices.editStrategy(req.body, req.files, req, res);
+    }
 }
 
 export default StrategyController;

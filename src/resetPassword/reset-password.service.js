@@ -44,7 +44,6 @@ class resetPasswordService {
    * @param {*} data
    */
   static async resetPasswordPost(data) {
-    console.log(data);
     const reset = await jwt.verify(
       data.email,
       JWT.SECRET,

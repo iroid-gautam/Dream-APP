@@ -13,4 +13,7 @@ routes.post('/add', storeFiles('public/strategy', { first: 'frontImage', second:
 
 routes.get('/delete/:id', asyncWrap(StrategyController.deleteStrategy));
 
+routes.get('/editStrategy/:id', asyncWrap(StrategyController.editStrategyPage));
+routes.post('/editStrategy/:id', storeFiles('public/strategy', { first: 'frontImage', second: 'flipImage' }, 'fields'), asyncWrap(StrategyController.editStrategy));
+
 module.exports = routes;

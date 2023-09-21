@@ -18,7 +18,7 @@ import FcmToken from "../../model/fcmToken";
 import { logo } from "../common/helper";
 import GetUserResource from "./resources/getUserResource";
 import jwt from "jsonwebtoken";
-const expiresInSeconds = 1800;
+const expiresInSeconds = 300;
 
 
 class AuthService {

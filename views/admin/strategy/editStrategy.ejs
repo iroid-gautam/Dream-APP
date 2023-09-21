@@ -1,0 +1,163 @@
+<%- include('../layouts/header') %>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-search--dropdown {
+            display: none;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-container--default .select2-selection--single {
+            padding: 6px 12px;
+            height: auto;
+            border: 1px solid #DEE2E6;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            padding-left: 5px;
+            color: #6e707e !important;
+        }
+    </style>
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Edit Strategy</h1>
+
+    <div class="col-lg-6" style="padding-right: 0;
+padding-left: 0;">
+
+        <!-- Circle Buttons -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"></h6>
+                <% if(success !='' ){ %>
+                    <div class="alert alert-success" style="margin-bottom: 0;" id="error">
+                        <%= success %>
+                    </div>
+                    <% } %>
+                        <% if(error !='' ){ %>
+                            <div class="alert alert-danger" style="margin-bottom: 0;" id="error">
+                                <%= error %>
+                            </div>
+                            <% } %>
+            </div>
+            <div class="card-body">
+                <form id="Strategy" method="post" enctype='multipart/form-data'>
+                    <input type="hidden" name="updateId" value="<%= strategy._id %>">
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label>Strategy Type : </label>
+                            <% var store=["Clarity","Courage","Activation"]; %>
+                                <select id="type" name="type" class="form-control">
+                                    <option value="" selected>Select Type</option>
+                                    <% for(i=0; i<store.length; i++){ %>
+                                        <option value="<%= store[i] %>" <% if(strategy.type==store[i]){ %>
+                                            <%= 'selected' %>
+                                                <%}%>><%= store[i] %>
+                                        </option>
+                                        <% } %>
+                                            <!-- <option value="Clarity">Clarity</option>
+                                <option value="Courage">Courage</option>
+                                <option value="Activation">Activation</option> -->
+                                </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Front Strategy Image : </label>
+                        <input type="file" style="line-height: 1.15;" class="form-control" id="frontImage"
+                            name="frontImage" accept="image/jpg, image/jpeg, image/png">
+                        <img src="<%= process.env.APP_URL_ADMIN %>/<%= strategy.frontImage %>" alt=""
+                            style="margin-top: 10px;" height="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Flip Strategy Image : </label>
+                        <input type="file" style="line-height: 1.15;" class="form-control" id="flipImage"
+                            name="flipImage" accept="image/jpg, image/jpeg, image/png">
+                        <img src="<%= process.env.APP_URL_ADMIN %>/<%= strategy.flipImage %>" alt=""
+                            style="margin-top: 10px;" height="100">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label>Video :</label>
+                            <select id="video" name="videoRef" class="form-control form-select select2">
+                                <option value="" selected>Select Video</option>
+                                <% let strategyData=strategy.videoRef %>
+                                    <% for(var i=0; i<videos.length; i++){ %>
+                                        <option value="<%= videos[i]['id'] %>" <% if(strategyData==videos[i]['id'] ){ %>
+                                            <%= 'selected' %>
+                                                <% } %>><%= videos[i]['title'] %>
+                                        </option>
+                                        <% } %>
+                                            <!-- <% for(var video of videos){%>
+                                    <option value="<%= video._id %>">
+                                        <%= video.title %>
+                                    </option>
+                                    <%}%> -->
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="/admin/vendor/jquery/jquery.min.js"></script>
+
+    <script>
+        $('#pageTitle').text('Edit Strategy')
+        $('#select-strategy').addClass('active', 'true');
+
+        $(document).ready(function () {
+            $(".select2").select2();
+        });
+
+        $(document).ready(function () {
+
+            jQuery.validator.addMethod("noSpace", function (value, element) {
+                return value == '' || value.trim().length != 0;
+            }, "No space please and don't leave it empty");
+
+            $.validator.addMethod("imageExtension", function (value, element) {
+                var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+                var fileExtension = value.split('.').pop().toLowerCase();
+                return $.inArray(fileExtension, allowedExtensions) !== -1;
+            }, "Please select a valid image file (JPG, JPEG, PNG)");
+
+
+            $("#Strategy").validate({
+                rules: {
+                    type: {
+                        required: true,
+                    },
+                    // frontImage: {
+                    //     required: true,
+                    //     imageExtension: true
+                    // },
+                    // flipImage: {
+                    //     required: true,
+                    //     imageExtension: true
+                    // },
+                },
+                messages: {
+                    type: {
+                        required: "Please select type",
+                    },
+                    // frontImage: {
+                    //     required: "Front strategy image is required",
+                    // },
+                    // flipImage: {
+                    //     required: "Flip strategy image is required",
+                    // },
+                },
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            })
+        })
+    </script>
+
+
+    <%- include('../layouts/footer') %>

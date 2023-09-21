@@ -13,4 +13,7 @@ routes.post('/add', storeFiles('public/questions', { first: 'frontImage', second
 
 routes.get('/delete/:id', asyncWrap(QuestionsToContemplateController.deleteQuestions));
 
+routes.get('/editQuestionPage/:id', asyncWrap(QuestionsToContemplateController.editQuestionPage));
+routes.post('/editQuestionPage/:id', storeFiles('public/questions', { first: 'frontImage', second: 'flipImage' }, 'fields'), asyncWrap(QuestionsToContemplateController.editQuestions));
+
 module.exports = routes;

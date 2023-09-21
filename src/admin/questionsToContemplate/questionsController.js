@@ -53,6 +53,28 @@ class QuestionsToContemplateController {
     static async deleteQuestions(req, res) {
         await QuestionsToContemplateServices.deleteQuestions(req.params.id, req, res);
     }
+
+
+
+    /**
+     * @description: Edit question page
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async editQuestionPage(req, res) {
+        await QuestionsToContemplateServices.editQuestionPage(req.params.id, req, res);
+    }
+
+
+
+    /**
+     * @description: Edit questions
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async editQuestions(req, res) {
+        await QuestionsToContemplateServices.editQuestions(req.body, req.files, req, res);
+    }
 }
 
 export default QuestionsToContemplateController;

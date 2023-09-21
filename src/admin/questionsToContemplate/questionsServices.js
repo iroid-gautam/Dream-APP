@@ -109,6 +109,67 @@ class QuestionsToContemplateServices {
             }
         }
     }
+
+
+
+    /**
+     * @description: Edit question page
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editQuestionPage(id, req, res) {
+        const findId = await QuestionsToContemplate.findById({ _id: id });
+        const videos = await VideoPodcasts.find({ type: '1' });
+        return res.render('admin/questionsToConte/edit', { 'videos': videos, 'question': findId });
+    }
+
+
+
+    /**
+     * @description: Edit questions & contemplate
+     * @param {*} data 
+     * @param {*} files 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editQuestions(data, files, req, res) {
+        const { updateId } = data;
+        const { frontImage, flipImage } = files;
+
+        if (frontImage || flipImage) {
+            const findQuestion = await QuestionsToContemplate.findById(updateId);
+
+            const frontImageUp = frontImage ? `questions/${frontImage[0].filename}` : findQuestion.frontImage;
+            const flipImageUp = flipImage ? `questions/${flipImage[0].filename}` : findQuestion.flipImage;
+            try {
+                frontImage ? await fs.unlinkSync(path.join(__dirname, '../../../public/', findQuestion.frontImage)) : findQuestion.frontImage
+                flipImage ? await fs.unlinkSync(path.join(__dirname, '../../../public/', findQuestion.flipImage)) : findQuestion.flipImage
+            } catch (err) {
+                await QuestionsToContemplate.findByIdAndUpdate(updateId, {
+                    frontImage: frontImageUp,
+                    flipImage: flipImageUp
+                }, { new: true })
+            }
+
+            data.frontImage = frontImageUp
+            data.flipImage = flipImageUp
+
+            await QuestionsToContemplate.findByIdAndUpdate(updateId, data);
+
+            req.flash('success', 'Questions to contemplate updated successfully');
+            return res.redirect('/admin/questions');
+
+        } else {
+            await QuestionsToContemplate.findByIdAndUpdate(updateId, data);
+
+            req.flash('success', 'Questions to contemplate updated successfully');
+            return res.redirect('/admin/questions');
+        }
+
+    }
 }
 
 export default QuestionsToContemplateServices;

@@ -109,6 +109,68 @@ class StrategyServices {
             }
         }
     }
+
+
+
+    /**
+     * @description: Statery update page
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editStrategyPage(id, req, res) {
+        const findId = await Strategy.findById({ _id: id });
+        const videos = await VideoPodcasts.find({ type: '1' });
+        return res.render('admin/strategy/editStrategy', { 'videos': videos, 'strategy': findId });
+    }
+
+
+
+
+    /**
+     * @description: Edit strategy
+     * @param {*} data 
+     * @param {*} files 
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+    static async editStrategy(data, files, req, res) {
+        const { updateId } = data;
+        const { frontImage, flipImage } = files;
+
+        if (frontImage || flipImage) {
+            const findStrategy = await Strategy.findById(updateId);
+
+            const frontImageUp = frontImage ? `strategy/${frontImage[0].filename}` : findStrategy.frontImage;
+            const flipImageUp = flipImage ? `strategy/${flipImage[0].filename}` : findStrategy.flipImage;
+            try {
+                frontImage ? await fs.unlinkSync(path.join(__dirname, '../../../public/', findStrategy.frontImage)) : findStrategy.frontImage
+                flipImage ? await fs.unlinkSync(path.join(__dirname, '../../../public/', findStrategy.flipImage)) : findStrategy.flipImage
+            } catch (err) {
+                await Strategy.findByIdAndUpdate(updateId, {
+                    frontImage: frontImageUp,
+                    flipImage: flipImageUp
+                }, { new: true })
+            }
+
+            data.frontImage = frontImageUp
+            data.flipImage = flipImageUp
+
+            await Strategy.findByIdAndUpdate(updateId, data);
+
+            req.flash('success', 'Strategy updated successfully');
+            return res.redirect('/admin/strategy');
+
+        } else {
+            await Strategy.findByIdAndUpdate(updateId, data);
+
+            req.flash('success', 'Strategy updated successfully');
+            return res.redirect('/admin/strategy');
+        }
+
+    }
 }
 
 export default StrategyServices;

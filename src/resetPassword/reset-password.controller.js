@@ -14,7 +14,6 @@ class resetPasswordController {
     try {
       const reset = await resetPasswordService.resetPasswordGet(req.query.email);
 
-      console.log(reset);
       return res.render("resetPassword/index", {
         logo: logo(),
         email: req.query.email,
@@ -43,7 +42,6 @@ class resetPasswordController {
     
     const resetpwd = await resetPasswordService.resetPasswordPost(req.body);
 
-    console.log(resetpwd);
     if (resetpwd) {
       return res.render("resetPassword/index", {
         email: req.query.email,

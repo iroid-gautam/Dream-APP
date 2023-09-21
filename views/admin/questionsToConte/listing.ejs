@@ -92,8 +92,8 @@
                     {
                         "data": null,
                         "render": function (data) {
-                            // <a href="/admin/ourinsights/updatePage/${data._id}" style="border-radius:11px; padding: 6px 10px;" class="btn btn-success"><i class="fas fa-pencil-alt"></i></a>
-                            return `  <a href="/admin/questions/delete/${data._id}" onclick="deleteRecord(event)" style="border-radius:11px; padding: 6px 11px;" class="btn btn-danger"><i class="fas fa-trash"></i></a>`
+                            return ` <a href="/admin/questions/editQuestionPage/${data._id}" style="border-radius:11px; padding: 6px 10px;" class="btn btn-success"><i class="fas fa-pencil-alt"></i></a>
+                             <a href="/admin/questions/delete/${data._id}" onclick="deleteRecord(event)" style="border-radius:11px; padding: 6px 11px;" class="btn btn-danger"><i class="fas fa-trash"></i></a>`
                         }
                     },
                 ],
