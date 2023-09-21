@@ -136,7 +136,7 @@ class QuestionsToContemplateServices {
      * @returns 
      */
     static async editQuestions(data, files, req, res) {
-        const { updateId } = data;
+        const { updateId, type, videoRef } = data;
         const { frontImage, flipImage } = files;
 
         if (frontImage || flipImage) {
@@ -154,16 +154,21 @@ class QuestionsToContemplateServices {
                 }, { new: true })
             }
 
-            data.frontImage = frontImageUp
-            data.flipImage = flipImageUp
-
-            await QuestionsToContemplate.findByIdAndUpdate(updateId, data);
+            await QuestionsToContemplate.findByIdAndUpdate(updateId, {
+                type: type,
+                frontImage: frontImageUp,
+                flipImage: flipImageUp,
+                videoRef: videoRef ? videoRef : null
+            });
 
             req.flash('success', 'Questions to contemplate updated successfully');
             return res.redirect('/admin/questions');
 
         } else {
-            await QuestionsToContemplate.findByIdAndUpdate(updateId, data);
+            await QuestionsToContemplate.findByIdAndUpdate(updateId, {
+                type: type,
+                videoRef: videoRef ? videoRef : null
+            });
 
             req.flash('success', 'Questions to contemplate updated successfully');
             return res.redirect('/admin/questions');

@@ -137,7 +137,7 @@ class StrategyServices {
      * @returns 
      */
     static async editStrategy(data, files, req, res) {
-        const { updateId } = data;
+        const { updateId, type, videoRef } = data;
         const { frontImage, flipImage } = files;
 
         if (frontImage || flipImage) {
@@ -155,16 +155,21 @@ class StrategyServices {
                 }, { new: true })
             }
 
-            data.frontImage = frontImageUp
-            data.flipImage = flipImageUp
-
-            await Strategy.findByIdAndUpdate(updateId, data);
+            await Strategy.findByIdAndUpdate(updateId, {
+                type: type,
+                frontImage: frontImageUp,
+                flipImage: flipImageUp,
+                videoRef: videoRef ? videoRef : null
+            });
 
             req.flash('success', 'Strategy updated successfully');
             return res.redirect('/admin/strategy');
 
         } else {
-            await Strategy.findByIdAndUpdate(updateId, data);
+            await Strategy.findByIdAndUpdate(updateId, {
+                type: type,
+                videoRef: videoRef ? videoRef : null
+            });
 
             req.flash('success', 'Strategy updated successfully');
             return res.redirect('/admin/strategy');
