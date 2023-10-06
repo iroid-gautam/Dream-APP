@@ -1,0 +1,135 @@
+<%- include('../layouts/header') %>
+    <style>
+        .eyes {
+            position: relative;
+        }
+
+        .eyes i {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .form-control {
+            padding-right: 40px;
+        }
+    </style>
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Change Password</h1>
+
+    <div class="col-lg-6" style="padding-right: 0;
+padding-left: 0;">
+
+        <!-- Circle Buttons -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"></h6>
+            </div>
+            <div class="card-body">
+                <% if(error !='' ){ %>
+                    <div class="alert alert-danger" id="error" role="alert">
+                        <%= error %>
+                    </div>
+                    <% } %>
+                        <form id="changePass" method="post">
+                            <div class="form-group">
+                                <label>Current Password : </label>
+                                <div class="eyes">
+                                    <input type="password" class="form-control" name="currentPassword"
+                                        placeholder="Enter current password">
+                                    <i class="toggle-password fa fa-fw fa-eye-slash eye"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>New Password : </label>
+                                <div class="eyes">
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword"
+                                        placeholder="Enter new password">
+                                    <i class="toggle-password fa fa-fw fa-eye-slash eye"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm password : </label>
+                                <div class="eyes">
+                                    <input type="password" class="form-control" name="confirmPassword"
+                                        placeholder="Enter confirm password">
+                                    <i class="toggle-password fa fa-fw fa-eye-slash eye"></i>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                        </form>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="/admin/vendor/jquery/jquery.min.js"></script>
+    <script>
+
+        $("#error").show().delay(2000).fadeOut();
+        $('#pageTitle').text('Change Password');
+
+        $('.eye').click(function () {
+            if ($(this).hasClass('fa-eye-slash')) {
+                $(this).removeClass('fa-eye-slash');
+                $(this).addClass('fa-eye');
+                $(this).siblings('input').attr('type', 'text');
+            } else {
+                $(this).removeClass('fa-eye');
+                $(this).addClass('fa-eye-slash');
+                $(this).siblings('input').attr('type', 'password');
+            }
+        });
+
+        $(document).ready(function () {
+            jQuery.validator.addMethod("noSpace", function (value, element) {
+                return value == '' || value.trim().length != 0;
+            }, "No space please and don't leave it empty");
+
+
+            $("#changePass").validate({
+                rules: {
+                    currentPassword: {
+                        required: true,
+                        noSpace: true,
+                        minlength: 8
+                    },
+                    newPassword: {
+                        required: true,
+                        noSpace: true,
+                        minlength: 8
+                    },
+                    confirmPassword: {
+                        required: true,
+                        noSpace: true,
+                        equalTo: "#newPassword",
+                        minlength: 8
+                    },
+                },
+                messages: {
+                    currentPassword: {
+                        required: "Current password is required",
+                        minlength: "Must be at least 8 characters. Must contain at least one number."
+                    },
+                    newPassword: {
+                        required: "New password is required",
+                        minlength: "Must be at least 8 characters. Must contain at least one number."
+                    },
+                    confirmPassword: {
+                        required: "Confirm password is required",
+                        minlength: "Must be at least 8 characters. Must contain at least one number.",
+                        equalTo: "New password and confirm password not match"
+                    },
+                },
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            })
+        })
+    </script>
+
+
+    <%- include('../layouts/footer') %>

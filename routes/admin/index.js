@@ -16,4 +16,6 @@ router.use('/questions', authentication, require('../../src/admin/questionsToCon
 router.use('/strategy', authentication, require('../../src/admin/strategy/strategyRouter'));
 router.use('/cubzone', authentication, require('../../src/admin/cubZone/cubZoneRouter'));
 
+router.use('/changePassword', authentication, require('../../src/admin/changePassword/changeRouter'));
+
 module.exports = router;
