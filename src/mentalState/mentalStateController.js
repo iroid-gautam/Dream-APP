@@ -19,7 +19,7 @@ class MentalStateController {
      */
     static async addMentalScore(req, res) {
         const data = await MentalStateServices.addMentalScore(req.user._id, req.body, req, res);
-        return res.send({ message: "Score added successfully" })
+        return res.send({ message: "Emotion added successfully" })
     }
 
 

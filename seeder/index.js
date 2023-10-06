@@ -3,6 +3,8 @@ import MindBody from "../model/mindAndBody";
 import MyInspiration from "../model/myInspiration";
 import Admin from "../model/admin";
 import { baseUrl } from "../src/common/constants/constant";
+// import Plans from "../model/plans";
+// import allPlan from "./plans"
 
 // admin credentials
 export const admin = async () => {
@@ -50,9 +52,6 @@ export const seedImages = async () => {
         },
         {
             emoji: baseUrl('emojis/9.png')
-        },
-        {
-            emoji: baseUrl('emojis/10.png')
         },
     ];
 
@@ -128,3 +127,17 @@ export const myInspiration = async () => {
     }
 }
 myInspiration()
+
+
+
+// In app purchase plan
+// export const premiumPlans = async () => {
+//     const finddata = await Plans.find({});
+//     if (finddata.length === 0) {
+//         const inserted = await Plans.insertMany(allPlan);
+//         console.log('Premium plans seeded');
+//         return true;
+//     }
+// }
+
+// premiumPlans()
