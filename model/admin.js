@@ -8,6 +8,10 @@ const adminSchema = new mongoose.Schema({
     password: {
         type: String,
         trim: true
+    },
+    refKey: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

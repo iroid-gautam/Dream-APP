@@ -18,4 +18,6 @@ router.use('/cubzone', authentication, require('../../src/admin/cubZone/cubZoneR
 
 router.use('/changePassword', authentication, require('../../src/admin/changePassword/changeRouter'));
 
+router.use('/forgotPassword', require('../../src/admin/forgotPassword/forgotRouter'));
+
 module.exports = router;
