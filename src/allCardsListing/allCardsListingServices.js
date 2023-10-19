@@ -54,7 +54,29 @@ class AllCardsListingServices {
                     cardId: random[0]._id
                 });
 
-                return { ...new AllCardsListingResource(random, findFlip) };
+                const isSub = await PremiumUserFind(auth);
+
+                if (isSub === true) {
+                    return { ...new AllCardsListingResource(random, findFlip) };
+                } else {
+                    const currentDate = moment().format('YYYY-MM-DD');
+                    const alreadyAdd = await FlippedCards.find({
+                        userId: auth,
+                        type: 1,
+                        $expr: {
+                            $eq: [
+                                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                                { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                            ]
+                        }
+                    })
+
+                    if (alreadyAdd.length > 0) {
+                        throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                    } else {
+                        return { ...new AllCardsListingResource(random, findFlip) };
+                    }
+                }
             }
 
 
@@ -73,7 +95,29 @@ class AllCardsListingServices {
                     cardId: random[0]._id
                 });
 
-                return { ...new AllCardsListingResource(random, findFlip) };
+                const isSub = await PremiumUserFind(auth);
+
+                if (isSub === true) {
+                    return { ...new AllCardsListingResource(random, findFlip) };
+                } else {
+                    const currentDate = moment().format('YYYY-MM-DD');
+                    const alreadyAdd = await FlippedCards.find({
+                        userId: auth,
+                        type: 2,
+                        $expr: {
+                            $eq: [
+                                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                                { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                            ]
+                        }
+                    })
+
+                    if (alreadyAdd.length > 0) {
+                        throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                    } else {
+                        return { ...new AllCardsListingResource(random, findFlip) };
+                    }
+                }
             }
 
         } else if (section == 2) {
@@ -99,7 +143,29 @@ class AllCardsListingServices {
                     cardId: random[0]._id
                 });
 
-                return { ...new AllCardsListingResource(random, findFlip) };
+                const isSub = await PremiumUserFind(auth);
+
+                if (isSub === true) {
+                    return { ...new AllCardsListingResource(random, findFlip) };
+                } else {
+                    const currentDate = moment().format('YYYY-MM-DD');
+                    const alreadyAdd = await FlippedCards.find({
+                        userId: auth,
+                        type: 3,
+                        $expr: {
+                            $eq: [
+                                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                                { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                            ]
+                        }
+                    })
+
+                    if (alreadyAdd.length > 0) {
+                        throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                    } else {
+                        return { ...new AllCardsListingResource(random, findFlip) };
+                    }
+                }
             }
 
         } else if (section == 3) {
@@ -125,7 +191,29 @@ class AllCardsListingServices {
                     cardId: random[0]._id
                 });
 
-                return { ...new AllCardsListingResource(random, findFlip) };
+                const isSub = await PremiumUserFind(auth);
+
+                if (isSub === true) {
+                    return { ...new AllCardsListingResource(random, findFlip) };
+                } else {
+                    const currentDate = moment().format('YYYY-MM-DD');
+                    const alreadyAdd = await FlippedCards.find({
+                        userId: auth,
+                        type: 4,
+                        $expr: {
+                            $eq: [
+                                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                                { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                            ]
+                        }
+                    })
+
+                    if (alreadyAdd.length > 0) {
+                        throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                    } else {
+                        return { ...new AllCardsListingResource(random, findFlip) };
+                    }
+                }
             }
 
         } else if (section == 4) {
@@ -155,7 +243,29 @@ class AllCardsListingServices {
                     cardId: random[0]._id
                 });
 
-                return { ...new AllCardsListingResource(random, findFlip) };
+                const isSub = await PremiumUserFind(auth);
+
+                if (isSub === true) {
+                    return { ...new AllCardsListingResource(random, findFlip) };
+                } else {
+                    const currentDate = moment().format('YYYY-MM-DD');
+                    const alreadyAdd = await FlippedCards.find({
+                        userId: auth,
+                        type: 5,
+                        $expr: {
+                            $eq: [
+                                { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                                { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                            ]
+                        }
+                    })
+
+                    if (alreadyAdd.length > 0) {
+                        throw new BadRequestException("Please purchase premium plan and unlimited cards flipped")
+                    } else {
+                        return { ...new AllCardsListingResource(random, findFlip) };
+                    }
+                }
             }
         }
     }
