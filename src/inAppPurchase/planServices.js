@@ -28,7 +28,7 @@ class PlanServices {
             const currentDate = moment().format('YYYY-MM-DD HH:mm');
             const match = moment(findSubscription.expiryDate).format('YYYY-MM-DD HH:mm');
             if (currentDate <= match) {
-                throw new BadRequestException(`This subscription is already associate with other user`);
+                throw new BadRequestException(`This subscription is already associated with other user`);
             }
 
             let isFreeTrialUse = false;
