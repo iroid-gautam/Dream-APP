@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 const accessTokenSchema = new mongoose.Schema({
     userId: { 
         type: Schema.Types.ObjectId, 
-        ref: "User" 
+        ref: "users" 
     },
     token: {
         type: String,

@@ -74,6 +74,19 @@ class AuthController {
 
   }
 
+
+  /**
+     * @description: Refress token to generate access token
+     * @param {*} req 
+     * @param {*} res 
+     * @returns 
+     */
+  static async refreshTokenToGenerateAccessToken(req, res) {
+    const data = await AuthService.refreshTokenToGenerateAccessToken(req.body.refreshToken);
+    return res.send({ data: data });
+}
+
+
   /**
    * log out user 
    * @param {*} req 

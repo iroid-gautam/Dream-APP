@@ -5,6 +5,7 @@ import {
     ForbiddenException,
     NotFoundException,
     PreconditionFailedException,
+    UnauthorizedException,
     UnprocesssableEntityException,
 } from "../../src/common/error-exceptions";
 import { OTPTYPE, baseUrl, JWT } from "../common/constants/constant";
@@ -18,6 +19,7 @@ import FcmToken from "../../model/fcmToken";
 import { logo } from "../common/helper";
 import GetUserResource from "./resources/getUserResource";
 import jwt from "jsonwebtoken";
+import RefreshToken from "../../model/refreshToken";
 const expiresInSeconds = 300;
 
 
@@ -43,7 +45,7 @@ class AuthService {
 
         if (registerUser) {
             const generateOTP = await AuthHelper.generateOTP();
-
+            console.log(generateOTP);
             const obj = {
                 to: registerUser.email,
                 subject: `Welcome To ${process.env.APP_NAME}`,
@@ -115,10 +117,18 @@ class AuthService {
                     await AuthHelper.storeAccessToken(registerUser, randomString);
                     registerUser.token = token;
 
+                    // Refresh token generate process
+                    const refreshToken = randomStringGenerator();
+
+                    await RefreshToken.create({
+                        token: refreshToken,
+                        accessToken: randomString
+                    });
+
                     const authenticate = {
                         tokenType: "Bearer",
                         accessToken: registerUser.token,
-                        refreshToken: null,
+                        refreshToken: refreshToken,
                         expiresIn: expiresInSeconds,
                     };
 
@@ -236,15 +246,72 @@ class AuthService {
         await AuthHelper.storeAccessToken(checkExistEmail, randomString);
         checkExistEmail.token = token;
 
+        // Refresh token generate process
+        const refreshToken = randomStringGenerator();
+
+        await RefreshToken.create({
+            token: refreshToken,
+            accessToken: randomString
+        });
+
         const authenticate = {
             tokenType: "Bearer",
             accessToken: checkExistEmail.token,
-            refreshToken: null,
+            refreshToken: refreshToken,
             expiresIn: expiresInSeconds,
         };
 
         return { ...new GetUserResource(checkExistEmail), authenticate };
     }
+
+
+
+    /**
+    * @description: Refresh token to generate access token
+    * @param {*} token 
+    */
+    static async refreshTokenToGenerateAccessToken(tokens) {
+        const refreshToken = await RefreshToken.findOne({
+            token: tokens
+        });
+
+        if (!refreshToken) throw new UnauthorizedException("This refresh token is expired, please login");
+
+        const accessToken = await AccessToken.findOne({ token: refreshToken.accessToken }).populate('userId')
+
+        // Old token remove from database
+        await RefreshToken.findOneAndDelete({ token: tokens })
+        await AccessToken.findOneAndDelete({ token: refreshToken.accessToken })
+
+        const randomString = randomStringGenerator();
+
+        const token = await AuthHelper.tokenGenerator({
+            id: accessToken.userId._id,
+            jti: randomString,
+        });
+
+        await AuthHelper.storeAccessToken(accessToken.userId, randomString);
+        accessToken.token = token;
+
+        // Refresh token generate process
+        const refreshTokenGen = randomStringGenerator();
+
+        await RefreshToken.create({
+            token: refreshTokenGen,
+            accessToken: randomString
+        });
+
+        const authenticate = {
+            tokenType: "Bearer",
+            accessToken: accessToken.token,
+            refreshToken: refreshTokenGen,
+            expiresIn: expiresInSeconds,
+        };
+
+        return authenticate;
+    }
+
+
 
     /**
      * logout use data

@@ -247,6 +247,26 @@ components:
                 type: string
                 example: Not Found
 
+    GetRefereshTokenResponse:
+      description: success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1LCJwaG9uZV9udW1iZXIiOiIrOTEgNzk5MDA1MzE3MCIsImZpcnN0X25hbWUiOiJ0ZXN0c2RzZHNkc2RzZHNkcyIsI
+                  expiresAt:
+                    type: integer
+                    example: 1682602683
+                  refreshToken:
+                    type: string
+                    example: c9tSCyBB18PVJUOKUcvFAsqtNmo7pWvhTIlj7m6mWCesxgAcwcxoYSeweX2vugGHaMrkvimh6B1
+
 paths:
   /auth/register:
     post:
@@ -318,6 +338,29 @@ paths:
           $ref: "#/components/responses/UnprocessableEntity"
         "412":
           $ref: "#/components/responses/PreconditionFailedException"
+
+  /auth/refreshToken:
+    post:
+      summary: Refresh token service to generate accessToken
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  example: G4urR2TanUp92389lpvcN9a3oxeZMNnxzmn45iX764inPBl5r39EMhHFViexrBVNVI8NeKA8AtD
+              required:
+                - refreshToken
+      responses:
+        "200":
+          $ref: "#/components/responses/GetRefereshTokenResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
 
   /auth/logout:
     post:

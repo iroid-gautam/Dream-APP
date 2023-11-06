@@ -21,6 +21,8 @@ router.post("/resend-otp", asyncWrapper(AuthController.resendOtp));
 
 router.post("/login", asyncWrapper(AuthController.login));
 
+router.post("/refreshToken", asyncWrapper(AuthController.refreshTokenToGenerateAccessToken))
+
 router.post("/logout", authenticate, asyncWrapper(AuthController.logOut));
 
 router.post(

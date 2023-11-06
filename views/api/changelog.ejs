@@ -42,7 +42,9 @@
         integrity="sha256-nwNjrH7J9zS/Ti4twtWX7OsC5QdQHCIKTv5cLMsGo68=" crossorigin="anonymous" />
     <div class="container">
         <div class="row justify-content-center">
-            <h3 class="pt-2 pb-4 pl-3"><%= process.env.APP_NAME %> Changelogs</h3>
+            <h3 class="pt-2 pb-4 pl-3">
+                <%= process.env.APP_NAME %> Changelogs
+            </h3>
             <hr />
             <br />
             <div>
@@ -416,6 +418,10 @@
                             <li class="text-muted ml-3 mb-2">
                                 <code>POST /auth/login</code><br />
                                 ✓ user login
+                            </li>
+                            <li class="text-muted ml-3 mb-2">
+                                <code>POST /auth/refreshToken </code><br>
+                                ✓ Refresh token service to generate accessToken
                             </li>
                             <li class="text-muted ml-3 mb-2">
                                 <code>POST /auth/logout</code><br />
