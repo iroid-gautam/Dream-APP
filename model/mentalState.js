@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const mentalStateSchema = mongoose.Schema({
+const mentalStateSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'

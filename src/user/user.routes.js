@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get("/", asyncWrapper(UserController.index));
 router.put("/", asyncWrapper(UserController.update));
+router.delete("/", asyncWrapper(UserController.deleteAccount));
 
 router.post('/email-change', asyncWrapper(UserController.emailChange));
 router.post('/verify-email-otp', asyncWrapper(UserController.emailVerifyOTP));

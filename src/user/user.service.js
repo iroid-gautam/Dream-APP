@@ -14,6 +14,15 @@ import UserSubscription from "../../model/userSubscription";
 import { auth } from "firebase-admin";
 import moment from "moment";
 import { PremiumUserFind } from "../common/helper";
+import AccessToken from "../../model/accessToken";
+import RefreshToken from "../../model/refreshToken";
+import MyHabits from "../../model/myHabits";
+import MyGoal from "../../model/myGoal";
+import MyJournal from "../../model/myJournal";
+import MyIntention from "../../model/myIntention";
+import MentalState from "../../model/mentalState";
+import FcmToken from "../../model/fcmToken";
+import FlippedCards from "../../model/flippedCards";
 
 class UserService {
     /**
@@ -54,6 +63,31 @@ class UserService {
     }
 
 
+
+    /**
+     * @description : Delete User account
+     * @param {*} id 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static async deleteAccount(id, req, res) {
+        try {
+            await User.findByIdAndDelete({ _id: id });
+            await AccessToken.deleteMany({ userId: id });
+            await RefreshToken.deleteMany({ userId: id });
+            await MyHabits.deleteMany({ userId: id });
+            await MyGoal.deleteMany({ userId: id });
+            await MyIntention.deleteMany({ userId: id });
+            await MyJournal.deleteMany({ userId: id });
+            await MentalState.deleteMany({ userId: id });
+            await FcmToken.deleteMany({ userId: id });
+            await FlippedCards.deleteMany({ userId: id });
+            return
+        } catch (err) {
+            console.log(err);
+            throw new BadRequestException("Something went wrong");
+        }
+    }
 
 
     /**

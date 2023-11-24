@@ -32,6 +32,16 @@ class UserController {
     }
 
 
+    /**
+    * @description : Delete User Account
+    * @param {*} req 
+    * @param {*} res 
+    */
+    static async deleteAccount(req, res) {
+        await UserService.deleteAccount(req.user._id, req, res);
+        return res.send({ message: "Account deleted successfully" });
+    }
+
 
     /**
      * @description: Change email

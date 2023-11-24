@@ -560,6 +560,23 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
 
+    delete:
+      summary: Delete User Account
+      description: |
+        - delete user from this device.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+        
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
   /user/updatePicture:
     put:
       summary: Edit profile picture

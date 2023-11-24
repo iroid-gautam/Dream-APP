@@ -20,7 +20,7 @@ class PlanServices {
 
         const iap = await InAppPurchase.verifyInAppReceipt(data, isTestEnvironment);
 
-        console.log("Subscription purchase POST API", iap);
+        // console.log("Subscription purchase POST API", iap);
 
         const findSubscription = await UserSubscription.findOne({ originalTransactionId: iap.originalTransactionId, purchasePlatform: "iOS" }).populate("userId");
 
@@ -172,11 +172,11 @@ class PlanServices {
      * @returns 
      */
     static async iOSManualSubscriptionWebhook(purchasedSubscription) {
-        console.log("IOS Webhook", purchasedSubscription);
+        // console.log("IOS Webhook", purchasedSubscription);
 
         if (purchasedSubscription) {
             const data = purchasedSubscription.unified_receipt.latest_receipt_info[0];
-            console.log("IOS data", data);
+            // console.log("IOS data", data);
             if (data) {
                 await UserSubscription.updateOne({ originalTransactionId: data.original_transaction_id }, {
                     expiryDate: data.expires_date_ms,
@@ -195,14 +195,14 @@ class PlanServices {
      * @returns 
      */
     static async androidManualSubscriptionWebhook(purchasedSubscription) {
-        console.log("Android webhook", purchasedSubscription);
+        // console.log("Android webhook", purchasedSubscription);
 
         var token = purchasedSubscription.message.data;
         var base64Payload = token;
         var payloadBuffer = Buffer.from(base64Payload, "base64");
         const inAppReceipt = JSON.parse(payloadBuffer.toString());
 
-        console.log("inAppReceipt", inAppReceipt);
+        // console.log("inAppReceipt", inAppReceipt);
 
         if (
             inAppReceipt.subscriptionNotification.notificationType == 3 ||
