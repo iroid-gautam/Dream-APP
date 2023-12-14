@@ -35,7 +35,9 @@ class UserService {
 
             const isSub = await PremiumUserFind(user._id);
 
-            return { data, isSub };
+            const subscription = await UserSubscription.findOne({ userId: user._id })
+
+            return { data, isSub, subscription };
         } else {
             throw new UnprocesssableEntityException("User id invalid");
         }

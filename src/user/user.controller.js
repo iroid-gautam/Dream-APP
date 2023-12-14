@@ -9,9 +9,9 @@ class UserController {
      * @param {*} res
      */
     static async index(req, res) {
-        const { data, isSub } = await UserService.index(req.user);
+        const { data, isSub, subscription } = await UserService.index(req.user);
 
-        return res.send({ data: new GetUserProfileResource(data, isSub) });
+        return res.send({ data: new GetUserProfileResource(data, isSub, subscription) });
     }
 
     /**
