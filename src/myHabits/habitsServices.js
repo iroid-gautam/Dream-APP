@@ -38,15 +38,15 @@ class HabitsServices {
             return { ...new SingleHabitResource(addhabit) }
 
         } else {
-            const currentDate = moment().format('YYYY-MM-DD');
+            // const currentDate = moment().format('YYYY-MM-DD');
             const alreadyAdd = await MyHabits.find({
                 userId: auth,
-                $expr: {
-                    $eq: [
-                        { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                        { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
-                    ]
-                }
+                // $expr: {
+                //     $eq: [
+                //         { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                //         { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                //     ]
+                // }
             })
 
             if (alreadyAdd.length > 2) {

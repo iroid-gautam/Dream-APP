@@ -66,15 +66,15 @@ class GoalServices {
                 return { ...new GoalResource(insertGoal) };
             }
         } else {
-            const currentDate = moment().format('YYYY-MM-DD');
+            // const currentDate = moment().format('YYYY-MM-DD');
             const alreadyAdd = await MyGoal.find({
                 userId: auth,
-                $expr: {
-                    $eq: [
-                        { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                        { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
-                    ]
-                }
+                // $expr: {
+                //     $eq: [
+                //         { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                //         { $dateToString: { format: "%Y-%m-%d", date: { $toDate: currentDate } } }
+                //     ]
+                // }
             })
 
             if (alreadyAdd.length > 0) {
