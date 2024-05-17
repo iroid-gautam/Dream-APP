@@ -31,4 +31,6 @@ router.post(
   asyncWrapper(AuthController.resetPassword)
 );
 
+router.post('/check-version', asyncWrapper(AuthController.checkVersion));
+
 export default router;

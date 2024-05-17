@@ -20,6 +20,7 @@ import { logo } from "../common/helper";
 import GetUserResource from "./resources/getUserResource";
 import jwt from "jsonwebtoken";
 import RefreshToken from "../../model/refreshToken";
+import Version from "../../model/appVersion";
 const expiresInSeconds = 300;
 
 
@@ -362,6 +363,43 @@ class AuthService {
         };
 
         await sendMail(emaildata, "reset-password-mail");
+    }
+
+
+
+
+
+    /**
+     * @description : fource update || check version
+     * @param {*} data 
+     * @returns 
+     */
+    static async checkVersion(data) {
+        const { platform, version } = data;
+        const findAppVersion = await commonService.findOne(Version, { platform: platform });
+
+        if (!findAppVersion) {
+            throw new NotFoundException("Invalid platform");
+        }
+        let message = {
+            message: "Your app is up to date.",
+            status: 0,
+            appLink: findAppVersion.appLink
+        }
+        if (version < findAppVersion.minVersion) {
+            message = {
+                message: "Your app is outdated, please update to the latest version of the app.",
+                status: 1,
+                appLink: findAppVersion.appLink
+            }
+        } else if (version >= findAppVersion.minVersion && version < findAppVersion.latestVersion) {
+            message = {
+                message: "You are not using the latest version of the app, please update to the latest version of the app.",
+                status: 2,
+                appLink: findAppVersion.appLink
+            }
+        }
+        return message;
     }
 }
 

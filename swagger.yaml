@@ -517,6 +517,38 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
 
+  /auth/check-version:
+    post:
+      summary: check app version
+      description: |
+        | status        | meaning           |
+        | ------------- |:-------------:|
+        | ***Recommended Update***      | 2 |
+        | ***Force Update***      | 1 |
+        | ***Up to date***      | 0 |
+      tags:
+        - Auth
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                platform:
+                  type: string
+                  enum: [iOS, Android]
+                version:
+                  type: string
+                  example: "1.0.0"
+
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
   /user:
     get:
       summary: Get User
@@ -568,7 +600,7 @@ paths:
         - User
       security:
         - bearerAuth: []
-        
+
       responses:
         "200":
           $ref: "#/components/responses/Success"

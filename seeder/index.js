@@ -3,6 +3,7 @@ import MindBody from "../model/mindAndBody";
 import MyInspiration from "../model/myInspiration";
 import Admin from "../model/admin";
 import { baseUrl } from "../src/common/constants/constant";
+import Version from "../model/appVersion";
 // import Plans from "../model/plans";
 // import allPlan from "./plans"
 
@@ -129,6 +130,34 @@ export const myInspiration = async () => {
 myInspiration()
 
 
+
+export const appVersion = async () => {
+
+    const appsVersion = [
+        {
+            minVersion: "1.0.0",
+            latestVersion: "1.0.0",
+            appLink: "",
+            platform: "Android"
+        },
+        {
+            minVersion: "1.0.0",
+            latestVersion: "1.0.0",
+            appLink: "",
+            platform: "iOS"
+        }
+    ]
+
+    // App version (Force update)
+    const version = await Version.estimatedDocumentCount();
+
+    if (!version) {
+        await Version.create(appsVersion);
+        console.log("App version seeded");
+    }
+}
+
+appVersion()
 
 // In app purchase plan
 // export const premiumPlans = async () => {

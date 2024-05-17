@@ -84,7 +84,7 @@ class AuthController {
   static async refreshTokenToGenerateAccessToken(req, res) {
     const data = await AuthService.refreshTokenToGenerateAccessToken(req.body.refreshToken);
     return res.send({ data: data });
-}
+  }
 
 
   /**
@@ -112,6 +112,19 @@ class AuthController {
     await AuthService.resetPassword(req.body.email);
 
     return res.send({ message: "Please check your email for instructions to reset your password." });
+  }
+
+
+  /**
+     * @description : check version
+     * @param {*} req 
+     * @param {*} res 
+     * @param {*} next 
+     * @returns 
+     */
+  static async checkVersion(req, res, next) {
+    const message = await AuthService.checkVersion(req.body);
+    return res.send(message)
   }
 }
 
