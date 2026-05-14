@@ -1,5 +1,0 @@
-import Joi from "joi";
-
-export default Joi.object().keys({
-    description: Joi.string().trim().required()
-});

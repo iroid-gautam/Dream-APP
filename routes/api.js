@@ -1,36 +1,12 @@
 import express from "express";
 import authRoutes from "../src/auth/auth.routes";
-import authenticate from "../src/common/middlewares/authenticate";
-import storeFcmTokenDto from "../src/fcmToken/dtos/storeFcmToken.dto";
-import validator from "../src/common/config/joi-validator";
-import registerPushToken from "../src/fcmToken/token.controller";
-import userRoutes from "../src/user/user.routes";
-
-// Webhook
-import inAppPurchaseWebhook from "../src/inAppPurchase/planController";
+import deviceTokenRoutes from "../src/deviceTokens/deviceToken.routes";
+import goalRoutes from "../src/goals/goal.routes";
 
 const router = express.Router();
 
 router.use("/auth", authRoutes);
-router.use("/user", authenticate, userRoutes);
-router.post("/fcm/token", [authenticate, validator.body(storeFcmTokenDto)], registerPushToken);
-
-router.use('/mentalState', authenticate, require('../src/mentalState/mentalStateRouter'));
-router.use('/intention', authenticate, require('../src/myIntention/intentionRouter'));
-
-router.use('/my', authenticate, require('../src/myMindBody&Inspiration/myRouter'));
-router.use('/habit', authenticate, require('../src/myHabits/habitsRouter'));
-router.use('/goal', authenticate, require('../src/myGoal/goalRouter'));
-router.use('/journal', authenticate, require('../src/myJournal/journalRouter'));
-router.use('/ourInsights', authenticate, require('../src/ourInsights/insightsRouter'));
-
-router.use('/videoAndPodcasts', authenticate, require("../src/videoAndPodcasts/videoPodRouter"));
-router.use('/allCardsListing', authenticate, require("../src/allCardsListing/allCardsListingRouter"));
-
-router.use('/subscription', authenticate, require("../src/inAppPurchase/planRouter"));
-
-// Webhook
-router.post("/ios/webhook", inAppPurchaseWebhook.iOSManualSubscriptionWebhook);
-router.post("/android/webhook", inAppPurchaseWebhook.androidManualSubscriptionWebhook);
+router.use("/device-tokens", deviceTokenRoutes);
+router.use("/goals", goalRoutes);
 
 export default router;

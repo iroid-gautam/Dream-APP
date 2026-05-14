@@ -1,76 +1,71 @@
+import "dotenv/config";
 import express from "express";
-import path from "path";
 import session from "express-session";
-import fs from "fs";
-import swagger from "./src/common/config/swagger";
-import errorHandler from "./src/common/middlewares/error-handler.middleware";
 import passport from "passport";
-import flash from "connect-flash";
 import routes from "./routes/index";
-import mongoConnection from "./model/connection";
+import { connectDatabase, syncDatabase } from "./model/connection";
+import "./model/user";
+import "./model/otp";
+import "./model/accessToken";
+import "./model/refreshToken";
+import "./model/godWhisper";
+import errorHandler from "./src/common/middlewares/error-handler.middleware";
+import swagger from "./src/common/config/swagger";
+import logger from "./src/common/logger";
+import requestLogger from "./src/common/middlewares/request-logger.middleware";
 import "./src/common/config/jwt-strategy";
-import "./cronJob/index";
+import "./src/common/config/passport-strategies";
+import { initializeFirebase } from "./src/common/config/firebase";
+import "./cronJob";
+import { runSeeders } from "./seeder";
 
-import "./seeder/index";
-
-require("dotenv").config();
+const appLogger = logger.withLabel("APP");
 
 const app = express();
-mongoConnection();
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
 
 app.use(
-  session({ secret: "hjs89d", resave: "false", saveUninitialized: "true" })
+  session({
+    secret: process.env.SESSION_SECRET || "booking-app-session-secret",
+    resave: false,
+    saveUninitialized: false,
+  })
 );
-
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.static(`${__dirname}/public`));
-app.use("/media", express.static(path.join(__dirname, "media")));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(requestLogger);
 
-app.get("/", (req, res) => {
-  return res.render("errors/500");
-});
-
-app.use(flash());
-app.use(function (req, res, next) {
-    res.locals.success = req.flash("success");
-    res.locals.error = req.flash("error");
-    next();
+app.get("/health", (req, res) => {
+  return res.send({ message: "Booking service is running." });
 });
 
 app.use("/api/documentation", swagger);
 app.use("/", routes);
 app.use(errorHandler);
 
-const isSecure = process.env.IS_SECURE === "true";
+const startServer = async () => {
+  try {
+    await connectDatabase();
+    await syncDatabase();
+    await runSeeders();
+    initializeFirebase();
 
-if (isSecure) {
-  var options = {
-    key: fs.readFileSync(`${process.env.SSL_CERT_BASE_PATH}/privkey.pem`),
-    cert: fs.readFileSync(`${process.env.SSL_CERT_BASE_PATH}/cert.pem`),
-    ca: [
-      fs.readFileSync(`${process.env.SSL_CERT_BASE_PATH}/cert.pem`),
-      fs.readFileSync(`${process.env.SSL_CERT_BASE_PATH}/fullchain.pem`),
-    ],
-  };
-  var https = require("https").Server(options, app);
+    app.listen(process.env.PORT, () => {
+      appLogger.info("Server started successfully.", {
+        baseUrl: `${process.env.BASE_URL}:${process.env.PORT}`,
+        port: process.env.PORT,
+      });
+    });
+  } catch (error) {
+    appLogger.error("Server failed to start.", {
+      message: error?.message || "Unknown error",
+      stack: error?.stack || null,
+    });
+    process.exit(1);
+  }
+};
 
-  https.listen(process.env.PORT, () => {
-    console.log(
-      `Https server is running on ${process.env.BASE_URL}:${process.env.PORT}`
-    );
-  });
-} else {
-  app.listen(process.env.PORT, () => {
-    console.log(`listening at ${process.env.BASE_URL}:${process.env.PORT}`);
-  });
-}
+startServer();

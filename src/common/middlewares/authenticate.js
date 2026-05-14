@@ -1,20 +1,26 @@
-// jwt AUTHENTICATION
 import AccessToken from "../../../model/accessToken";
 import { HttpStatus } from "../error-exceptions";
 import passport from "passport";
+import CommonService from "../services/common.service";
 
 export default (req, res, next) => {
   passport.authenticate("jwt", { session: false }, async (err, user) => {
-    if (!user) {
+    if (err || !user) {
       return res
         .status(HttpStatus.UNAUTHORIZED_EXCEPTION)
         .send({ message: "Unauthorized" });
     }
 
-    const exist = await AccessToken.findOne({
+    if (user.isDeleted) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED_EXCEPTION)
+        .send({ message: "Unauthorized" });
+    }
+
+    const exist = await CommonService.findOne(AccessToken, {
       token: user.jti,
       isRevoked: false,
-      userId: user._id,
+      userId: user.id,
     });
 
     if (!exist) {
@@ -24,7 +30,6 @@ export default (req, res, next) => {
     }
 
     req.user = user;
-
     return next();
   })(req, res, next);
 };

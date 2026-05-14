@@ -1,34 +1,59 @@
-import mongoose, { Schema } from 'mongoose';
+import { DataTypes } from "sequelize";
+import sequelize from "./connection";
 
-const otpSchema = new mongoose.Schema(
-    {
-        email: {
-            type: String,
-            required: false,
-        },
-        otp: {
-            type: String,
-            required: true,
-        },
-        type: {
-            type: String,
-            enum: ['1', '2'],
-            comment: '[1 => registration, 2 => forgot password]'
-        },
-        isExpired   : {
-            type: Boolean,
-            required: false,
-            default: false,
-        },
+const Otp = sequelize.define(
+  "otp",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    {
-        timestamps: {
-            createdAt: "created_at",
-            updatedAt: "updated_at",
-        }
-    }
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: "user_id",
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
+    email: {
+      type: DataTypes.STRING(160),
+      allowNull: true,
+      set(value) {
+        this.setDataValue("email", value ? value.trim().toLowerCase() : null);
+      },
+    },
+    otp: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+    },
+    type: {
+      type: DataTypes.ENUM("registration", "forgot_password", "login"),
+      allowNull: false,
+    },
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: "expires_at",
+    },
+    isExpired: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_expired",
+    },
+    isConsumed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_consumed",
+    },
+  },
+  {
+    tableName: "otps",
+  }
 );
-
-const Otp = mongoose.model('otps', otpSchema);
 
 export default Otp;

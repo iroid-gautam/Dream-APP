@@ -11,17 +11,17 @@ const options = {
 passport.use(
   new JWTstratagy(options, async (jwtPayload, done) => {
     try {
-      const user = await User.findOne({
-        _id: jwtPayload.id,
-      });
+      const user = await User.findByPk(jwtPayload.id);
 
       if (!user) {
         return done(null, false);
       }
-      delete user._doc.password;
-      return done(null, { ...user._doc, jti: jwtPayload.jti });
+
+      const sanitizedUser = user.toJSON();
+      delete sanitizedUser.password;
+
+      return done(null, { ...sanitizedUser, jti: jwtPayload.jti });
     } catch (error) {
-      console.log(error);
       return done(error, false);
     }
   })

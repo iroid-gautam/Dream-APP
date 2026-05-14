@@ -1,318 +1,416 @@
 openapi: 3.0.0
 
 info:
-  title: kick-fear-in-the-butt-app
-  description: OpenAPI specification for kick-fear-in-the-butt-app
+  title: Goal App Auth API
+  description: |
+    OpenAPI specification for Goal-App APIs.
+
+    Base URL:
+    - `/api/v1`
+
+    Swagger authorization and token usage:
+    1. Call login/verify OAuth flow endpoints to receive `data.authenticate.accessToken` and `data.authenticate.refreshToken`.
+    2. Click `Authorize` in Swagger UI and set bearer token as: `Bearer <accessToken>`.
+    3. When access token expires, call `/auth/refreshToken` with `refreshToken` to receive a new access token payload.
+    4. Use `/auth/logout` to revoke active access token and optional refresh token.
+
+    OTP numeric type mapping used in auth APIs:
+    - `1` = registration OTP
+    - `2` = login OTP
+    - `3` = forgot password OTP
   version: 1.0.0
 
+servers:
+  - url: /api/v1
+    description: Local API base path (prepend host and port, for example http://localhost:9001/api/v1)
+
+tags:
+  - name: Auth
+    description: Core authentication endpoints
+  - name: Auth OTP
+    description: OTP verification and recovery flows
+  - name: Auth Profile
+    description: Authenticated profile and password operations
+  - name: Auth Email Update
+    description: Authenticated email update flows
+  - name: Auth Account
+    description: Account lifecycle operations
+  - name: Auth OAuth
+    description: OAuth authentication endpoints
+  - name: Goals
+    description: Goal management endpoints
+  - name: Device Tokens
+    description: FCM device token registration and removal endpoints
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     User:
       type: object
       properties:
         id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
         name:
           type: string
-          maxLength: 26
-          example: Shreya
+          example: Gautam
         email:
           type: string
-          example: shrea@gmail.com
+          format: email
+          example: gautam@example.com
+        isVerified:
+          type: boolean
+          example: true
+        localAuthEnabled:
+          type: boolean
+          example: true
+        authProviders:
+          type: array
+          items:
+            type: string
+            example: local
+        lastLoginProvider:
+          type: string
+          nullable: true
+          example: local
 
-  securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+    Authenticate:
+      type: object
+      properties:
+        tokenType:
+          type: string
+          example: Bearer
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        refreshToken:
+          type: string
+          example: refresh-token-value
+        expiresIn:
+          type: integer
+          example: 900
+
+    AuthenticatedUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            authenticate:
+              $ref: "#/components/schemas/Authenticate"
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: success
+
+    UserResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/User"
+
+    MessageWithUserResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: User name updated successfully.
+        data:
+          $ref: "#/components/schemas/User"
+
+    AuthResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/AuthenticatedUser"
+
+    OtpVerificationSuccessResponse:
+      oneOf:
+        - $ref: "#/components/schemas/AuthResponse"
+        - type: object
+          properties:
+            data:
+              type: string
+              example: OTP verified successfully.
+
+    LoginOrRegisterPendingResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/User"
+            - type: object
+              properties:
+                verificationRequired:
+                  type: boolean
+                  example: true
+                otpType:
+                  type: string
+                  nullable: true
+                  example: login
+                message:
+                  type: string
+                  nullable: true
+                  example: Login OTP sent successfully. Please verify OTP to continue.
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Unauthorized
+
+    GoalHistoryDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          example: "2026-05-13T00:00:00.000Z"
+        goal:
+          type: object
+
+    GodWhisper:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 137f5ca0-c99d-4496-839a-9a5f81565ca3
+        message:
+          type: string
+          example: I stay committed and finish what I start.
+        sortOrder:
+          type: integer
+          example: 1
+
+    Goal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 1da43024-9754-4868-94be-1d9b8ea3f233
+        userId:
+          type: string
+          format: uuid
+          example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
+        username:
+          type: string
+          example: Gautam
+        dream:
+          type: string
+          example: Build Goal-App with clean architecture and daily consistency.
+        godWhisperIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        godWhispers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              message:
+                type: string
+        reminderTime:
+          type: string
+          example: "08:30"
+        timezone:
+          type: string
+          example: Asia/Kolkata
+        reminderEnabled:
+          type: boolean
+          example: true
+        isActive:
+          type: boolean
+          example: true
+        activatedAt:
+          type: string
+          format: date-time
+        deactivatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    GoalResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Goal saved successfully.
+        data:
+          $ref: "#/components/schemas/Goal"
+
+    GoalHistoryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoalHistoryDay"
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 21
+            totalPages:
+              type: integer
+              example: 3
+
+    GoalSummaryResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            currentGoal:
+              type: object
+              nullable: true
+              description: Currently active goal for authenticated user. Null when no active goal exists.
+            history:
+              type: array
+              items:
+                $ref: "#/components/schemas/GoalHistoryDay"
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 21
+            totalPages:
+              type: integer
+              example: 3
+
+    GodWhisperListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GodWhisper"
+        meta:
+          type: object
+          nullable: true
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 21
+            totalPages:
+              type: integer
+              example: 3
+
+    DeviceToken:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 828294d0-a5f4-47bb-8fa8-07a85ab58874
+        userId:
+          type: string
+          format: uuid
+          example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
+        fcmToken:
+          type: string
+          example: fcm-token-value
+        platform:
+          type: string
+          enum:
+            - android
+            - ios
+            - web
+          example: android
+        deviceId:
+          type: string
+          example: redmi-note-13-pro
+        isActive:
+          type: boolean
+          example: true
+        lastUsedAt:
+          type: string
+          format: date-time
+
+    DeviceTokenResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Device token registered successfully.
+        data:
+          $ref: "#/components/schemas/DeviceToken"
 
   responses:
-    GetTokens:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
-                    example: ey2ace6et98s1ncjasd
-                  refreshToken:
-                    type: string
-                    example: def50"200"75819e4748adef0566c3b41437f2b7e3
-    success:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: success
-
-    GetUserBudgetCopiedResponse:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Budget copied successfully
-
-    GetUserNetworthCopiedResponse:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Networth copied successfully
-
-    GetUserBudgetSourceDeleteResponse:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: source has been deleted
-
-    GetLoginResponse:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  _id:
-                    type: integer
-                    example: 643d4d03ae23825006d11937
-                  firstName:
-                    type: string
-                    example: Shreya Kamawala
-                  email:
-                    type: string
-                    example: shrea@gmail.com
-                  profileImage:
-                    type: string
-                    example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
-                  auth:
-                    type: object
-                    properties:
-                      tokenType:
-                        type: string
-                        example: Bearer
-                      accessToken:
-                        type: string
-                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1LCJwaG9uZV9udW1iZXIiOiIrOTEgNzk5MDA1MzE3MCIsImZpcnN0X25hbWUiOiJ0ZXN0c2RzZHNkc2RzZHNkcyIsI
-                      refreshToken:
-                        type: string
-                        example: DGptc0miW9AXKCDl6H7RMMHlDcruUbPrwOowslSHiVOyYYJeFhRW1F2XKIrrfUCRIoG1lRMUfEQKSxX3TApl1Aw6641YkAGJhi6yQgr06PrZZuPFddYBvr
-                      expiresIn:
-                        type: integer
-                        example: 31536000
-    User:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  _id:
-                    type: integer
-                    example: 643d4d03ae23825006d11937
-                  name:
-                    type: string
-                    example: Shreya Kamawala
-                  profileImage:
-                    type: string
-                    example: http://example.com/static/file_697929e031dfb468c04126e26845f03c1610166680033.jpeg
-                  email:
-                    type: string
-                    example: shrea@gmail.com
     UnauthorizedError:
-      description: |
-        - Invalid credentials
-        - Expired access or refresh token
-        - Revoked access or refresh token
+      description: Unauthorized
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Unauthorized
-    NoContent:
-      description: |
-        - Empty body content
-      content:
-        application/json:
-          schema:
-            type: object
-    UnprocessableEntity:
-      description: Validation errors
-      content:
-        application/json:
-          schema:
-            type: object
-    Conflict:
-      description: Account already registered with given email
-      content:
-        application/json:
-          schema:
-            type: object
-    PreconditionFailedException:
-      description: Account does not exist
-      content:
-        application/json:
-          schema:
-            type: object
-
-    GetForgotPasswordResponse:
-      description: Ok
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              status:
-                type: integer
-                example: true
-              message:
-                type: string
-                example: Please check your email inbox. We sent you an email with reset password link.
-    Success:
-      description: |
-        - success
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: success
-
-    ConflictError:
-      description: |
-        - ConflictError
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: conflict error
+            $ref: "#/components/schemas/ErrorResponse"
 
     BadRequestError:
-      description: |
-        - bad request error
+      description: Bad request
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: bad request error
+            $ref: "#/components/schemas/ErrorResponse"
 
-    NotFoundError:
-      description: |
-        - NotFoundError
+    ForbiddenError:
+      description: Forbidden
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Not Found
+            $ref: "#/components/schemas/ErrorResponse"
 
-    GetRefereshTokenResponse:
-      description: success
+    PreconditionFailedError:
+      description: Precondition failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ValidationError:
+      description: Validation error
       content:
         application/json:
           schema:
             type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1LCJwaG9uZV9udW1iZXIiOiIrOTEgNzk5MDA1MzE3MCIsImZpcnN0X25hbWUiOiJ0ZXN0c2RzZHNkc2RzZHNkcyIsI
-                  expiresAt:
-                    type: integer
-                    example: 1682602683
-                  refreshToken:
-                    type: string
-                    example: c9tSCyBB18PVJUOKUcvFAsqtNmo7pWvhTIlj7m6mWCesxgAcwcxoYSeweX2vugGHaMrkvimh6B1
 
 paths:
   /auth/register:
     post:
-      summary: Create new account
-      description: "[ termCondition => 0 - accepted 1- not accepted ]"
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: tushar parmar
-                email:
-                  type: string
-                  example: tushar@mailinator.com
-                password:
-                  type: string
-                  example: password@123
-                confirmPassword:
-                  type: string
-                  example: password@123
-                profileImage:
-                  type: string
-                  format: binary
-                termCondition:
-                  type: integer
-                  example: 0
-      responses:
-        "200":
-          $ref: "#/components/responses/GetLoginResponse"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-        "409":
-          $ref: "#/components/responses/Conflict"
-
-  /auth/login:
-    post:
-      description: Login
-      summary: Login User
+      summary: Register user
       tags:
         - Auth
       requestBody:
@@ -321,31 +419,222 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - name
+                - email
+                - password
+                - confirmPassword
+              properties:
+                name:
+                  type: string
+                  example: Gautam
+                email:
+                  type: string
+                  format: email
+                  example: gautam@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  example: password@123
+                confirmPassword:
+                  type: string
+                  minLength: 6
+                  example: password@123
+                termCondition:
+                  type: number
+                  example: 0
+      responses:
+        "200":
+          description: Registration created or deleted account reactivated and OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginOrRegisterPendingResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP
+      description: |
+        Verify OTP using numeric type code.
+        Type mapping:
+        1 = registration OTP
+        2 = login OTP
+        3 = forgot password OTP
+      tags:
+        - Auth OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+                - type
               properties:
                 email:
                   type: string
-                  example: tushar@mailinator.com
-                password:
+                  format: email
+                  example: gautam@example.com
+                otp:
                   type: string
-                  example: password@123
-
+                  minLength: 4
+                  maxLength: 4
+                  example: "1234"
+                type:
+                  type: integer
+                  enum:
+                    - 1
+                    - 2
+                    - 3
+                  example: 2
+                  description: 1 = registration OTP, 2 = login OTP, 3 = forgot password OTP
       responses:
         "200":
-          $ref: "#/components/responses/GetLoginResponse"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpVerificationSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
         "412":
-          $ref: "#/components/responses/PreconditionFailedException"
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 
-  /auth/refreshToken:
+  /auth/resend-otp:
     post:
-      summary: Refresh token service to generate accessToken
+      summary: Resend OTP
+      description: |
+        Resend OTP using numeric type code.
+        Type mapping:
+        1 = registration OTP
+        2 = login OTP
+        3 = forgot password OTP
+      tags:
+        - Auth OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - type
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: gautam@example.com
+                type:
+                  type: integer
+                  enum:
+                    - 1
+                    - 2
+                    - 3
+                  example: 2
+                  description: 1 = registration OTP, 2 = login OTP, 3 = forgot password OTP
+      responses:
+        "200":
+          description: OTP resent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/login:
+    post:
+      summary: Login user (OTP-based)
+      description: |
+        Initiates local login by sending login OTP.
+        Password is not required in this request.
       tags:
         - Auth
       requestBody:
         required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: gautam@example.com
+      responses:
+        "200":
+          description: Login OTP sent or verification required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginOrRegisterPendingResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/refreshToken:
+    post:
+      summary: Refresh access token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: refresh-token-value
+      responses:
+        "200":
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Authenticate"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -353,140 +642,146 @@ paths:
               properties:
                 refreshToken:
                   type: string
-                  example: G4urR2TanUp92389lpvcN9a3oxeZMNnxzmn45iX764inPBl5r39EMhHFViexrBVNVI8NeKA8AtD
+                  example: refresh-token-value
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /auth/forgot-password:
+    post:
+      summary: Request forgot password OTP
+      tags:
+        - Auth OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
               required:
-                - refreshToken
-      responses:
-        "200":
-          $ref: "#/components/responses/GetRefereshTokenResponse"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-
-  /auth/logout:
-    post:
-      description: Logout from the application
-      summary: Logout
-      tags:
-        - Auth
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                deviceId:
-                  type: string
-                  example: ABKOIODUJIOSWNJC
-      responses:
-        "200":
-          $ref: "#/components/responses/success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-
-  /auth/verify-otp:
-    post:
-      summary: Verify OTP
-      description: "[Type : 1 => registration otp ]"
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                otp:
-                  type: string
-                  example: 1106
-                email:
-                  type: string
-                  format: email
-                  example: tushar@mailinator.com
-                type:
-                  type: integer
-                  example: 1
-      responses:
-        "200":
-          $ref: "#/components/responses/success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-
-  /auth/resend-otp:
-    post:
-      summary: Resend OTP
-      description: "[Type : 1 => registration otp ]"
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+                - email
               properties:
                 email:
                   type: string
                   format: email
-                  example: tushar@mailinator.com
-                type:
-                  type: integer
-                  example: 1
+                  example: gautam@example.com
       responses:
         "200":
-          $ref: "#/components/responses/success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
+          description: Forgot password OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
         "412":
-          $ref: "#/components/responses/PreconditionFailedException"
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 
   /auth/reset-password:
     post:
-      summary: Reset Password
+      summary: Reset password
       tags:
-        - Auth
+        - Auth OTP
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - email
+                - password
+                - confirmPassword
               properties:
                 email:
                   type: string
                   format: email
-                  example: tushar@mailinator.com
-              required:
-                - email
+                  example: gautam@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  example: password@123
+                confirmPassword:
+                  type: string
+                  minLength: 6
+                  example: password@123
       responses:
         "200":
-          $ref: "#/components/responses/success"
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/change-password:
+    post:
+      summary: Change password
+      tags:
+        - Auth Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - password
+                - confirmPassword
+              properties:
+                oldPassword:
+                  type: string
+                  example: oldPassword@123
+                password:
+                  type: string
+                  minLength: 6
+                  example: newPassword@123
+                confirmPassword:
+                  type: string
+                  minLength: 6
+                  example: newPassword@123
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
         "422":
-          $ref: "#/components/responses/UnprocessableEntity"
+          $ref: "#/components/responses/ValidationError"
 
-  /fcm/token:
-    post:
+  /auth/update-profile:
+    patch:
+      summary: Update user profile
       description: |
-        - Register device token
-        <table style='border: 1px solid;width:auto;'>
-        <tr><td style='padding: 10px 10px 10px 10px;'><b>platform</b></td><td style='padding: 10px 10px 10px 10px;'><b>value</b></td></tr>
-        <tr><td style='padding: 10px 10px 10px 10px;'>iOS</td><td style='padding: 10px 10px 10px 10px;'>iOS</td></tr>
-        <tr><td style='padding: 10px 10px 10px 10px;'>Android</td><td style='padding: 10px 10px 10px 10px;'>Android</td></tr>
-        </table>
-      summary: Register device token
+        Updates authenticated user profile fields.
+        - `name` is optional.
+        - `newEmail` is optional and triggers OTP verification flow.
+        - If `newEmail` is provided, verify via `/auth/verify-email-update`.
       tags:
-        - FCM
+        - Auth Profile
       security:
         - bearerAuth: []
       requestBody:
@@ -496,1291 +791,464 @@ paths:
             schema:
               type: object
               properties:
-                token:
+                name:
                   type: string
-                  example: def5020075819e4748adefe1f860566c3b41437f2b7e396db025b4d384e6b5db5911a3cfc22
+                  minLength: 2
+                  maxLength: 120
+                  example: Gautam Sharma
+                  description: Display name of the user.
+                newEmail:
+                  type: string
+                  format: email
+                  example: newemail@example.com
+                  description: New email to be verified by OTP.
+      responses:
+        "200":
+          description: Profile updated; if `newEmail` was provided, email-update OTP is sent.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageWithUserResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/verify-email-update:
+    post:
+      summary: Verify email update OTP
+      description: Verifies OTP sent to `newEmail` from `/auth/update-profile` and updates account email.
+      tags:
+        - Auth Email Update
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: string
+                  example: "1234"
+      responses:
+        "200":
+          description: Email updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageWithUserResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/resend-email-update-otp:
+    post:
+      summary: Resend email update OTP
+      description: Resends OTP for latest pending email update request.
+      tags:
+        - Auth Email Update
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Email update OTP resent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+
+  /auth/delete-account:
+    delete:
+      summary: Soft delete account
+      description: Marks account as deleted and revokes active access/refresh tokens.
+      tags:
+        - Auth Account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+
+  /auth/social/{provider}:
+    get:
+      summary: Start social OAuth login
+      description: Initiates OAuth login for the selected provider and redirects the client to the provider consent screen.
+      tags:
+        - Auth OAuth
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          description: Social provider key. Use `google` for Google OAuth or `facebook` for Facebook OAuth.
+          schema:
+            type: string
+            enum: [google, facebook]
+      responses:
+        "302":
+          description: Redirects user-agent to the selected provider OAuth consent screen
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+  /auth/social/{provider}/callback:
+    get:
+      summary: Social OAuth callback
+      description: Provider callback endpoint used after OAuth consent. On success, returns authenticated user data and JWT auth tokens.
+      tags:
+        - Auth OAuth
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          description: Social provider key that started the OAuth flow.
+          schema:
+            type: string
+            enum: [google, facebook]
+      responses:
+        "200":
+          description: Social OAuth login successful; returns user profile and authentication payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid or unsupported provider value
+          $ref: "#/components/responses/BadRequestError"
+        "403":
+          description: Social login blocked (for example, deleted account)
+          $ref: "#/components/responses/ForbiddenError"
+
+  /auth/me:
+    get:
+      summary: Get authenticated user
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authenticated user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /goals/summary:
+    get:
+      summary: Get current goal and paginated history in one response
+      description: |
+        Returns two separate objects in one API response:
+        - `data.currentGoal`: currently active goal (or null)
+        - `data.history`: day-wise history in descending date order
+        Pagination (`page`, `limit`) applies only to `data.history`.
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Current goal and paginated goal history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalSummaryResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+
+  /goals/whispers:
+    get:
+      summary: Get active god whispers
+      description: |
+        Returns active god-whisper master data used during goal creation.
+        - Default mode returns paginated data.
+        - Set `view=all` to return full list without pagination.
+      tags:
+        - Goals
+      parameters:
+        - in: query
+          name: view
+          required: false
+          schema:
+            type: string
+            enum: [all]
+          description: Use `all` to return the complete list without pagination meta.
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Ignored when `view=all`.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Ignored when `view=all`.
+      responses:
+        "200":
+          description: Active god whispers returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GodWhisperListResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /goals:
+    post:
+      summary: Create goal
+      description: |
+        Creates a new active goal for authenticated user.
+        If another active goal exists, it is deactivated automatically and new goal becomes active.
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - dream
+                - godWhisperIds
+                - reminderTime
+                - timezone
+              properties:
+                username:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  example: Gautam
+                dream:
+                  type: string
+                  minLength: 5
+                  maxLength: 1000
+                  example: Build disciplined habits and ship meaningful backend features.
+                godWhisperIds:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid
+                reminderTime:
+                  type: string
+                  pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$"
+                  example: "07:30"
+                timezone:
+                  type: string
+                  example: Asia/Kolkata
+      responses:
+        "201":
+          description: Goal saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /goals/{id}/reminder:
+    patch:
+      summary: Enable or disable goal reminder
+      description: Updates reminder status (`reminderEnabled`) for the selected goal owned by authenticated user.
+      tags:
+        - Goals
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Goal id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reminderEnabled
+              properties:
+                reminderEnabled:
+                  type: boolean
+                  example: false
+      responses:
+        "200":
+          description: Goal reminder updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Goal reminder updated successfully.
+                  data:
+                    $ref: "#/components/schemas/Goal"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /device-tokens:
+    post:
+      summary: Register device token
+      description: |
+        Registers or updates authenticated user's FCM token for a device.
+        Reuses existing record when same `fcmToken` or same user+`deviceId` is already present.
+      tags:
+        - Device Tokens
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fcmToken
+                - platform
+                - deviceId
+              properties:
+                fcmToken:
+                  type: string
+                  example: fcm-token-value
+                platform:
+                  type: string
+                  enum:
+                    - android
+                    - ios
+                    - web
+                  example: android
                 deviceId:
                   type: string
-                  example: e1f860566c3b41437f2b7e
-                platform:
-                  type: string
-                  example: iOS
-              required:
-                - token
-                - deviceId
-                - platform
+                  maxLength: 255
+                  example: redmi-note-13-pro
       responses:
         "200":
-          $ref: "#/components/responses/GetTokens"
+          description: Device token registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceTokenResponse"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
         "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-
-  /auth/check-version:
-    post:
-      summary: check app version
-      description: |
-        | status        | meaning           |
-        | ------------- |:-------------:|
-        | ***Recommended Update***      | 2 |
-        | ***Force Update***      | 1 |
-        | ***Up to date***      | 0 |
-      tags:
-        - Auth
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                platform:
-                  type: string
-                  enum: [iOS, Android]
-                version:
-                  type: string
-                  example: "1.0.0"
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-
-  /user:
-    get:
-      summary: Get User
-      description: get login user detail
-      tags:
-        - User
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          $ref: "#/components/responses/User"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-    put:
-      summary: Edit User
-      description: Edit User Detail
-      tags:
-        - User
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: tushar parmar
-                # email:
-                #   type: string
-                #   example: tushar@mailinator.com
-      responses:
-        "200":
-          $ref: "#/components/responses/success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntity"
+          $ref: "#/components/responses/ValidationError"
 
     delete:
-      summary: Delete User Account
-      description: |
-        - delete user from this device.
+      summary: Remove device token
+      description: Marks the provided FCM token as inactive for authenticated user.
       tags:
-        - User
+        - Device Tokens
       security:
         - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /user/updatePicture:
-    put:
-      summary: Edit profile picture
-      description: Edit User profile
-      tags:
-        - User
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: false
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                profileImage:
-                  type: string
-                  format: binary
-      responses:
-        "200":
-          $ref: "#/components/responses/success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-
-  /user/changePassword:
-    post:
-      summary: User change password
-      description: change password
-
-      tags:
-        - User
-      security:
-        - bearerAuth: []
-
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                currentPassword:
-                  type: string
-                  example: 87654321
-                newPassword:
-                  type: string
-                  example: 12345678
-                confirmNewPassword:
-                  type: string
-                  example: 12345678
-
               required:
-                - currentPassword
-                - newPassword
-                - confirmNewPassword
+                - fcmToken
+              properties:
+                fcmToken:
+                  type: string
+                  example: fcm-token-value
       responses:
         "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /user/email-change:
-    post:
-      description: Change email
-      summary: Change email
-      tags:
-        - Email
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        description: ""
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: tushar@mailinator.com
-              required:
-                - email
-
-      responses:
+          description: Device token removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
         "422":
-          $ref: "#/components/responses/UnprocessableEntity"
-        "200":
-          $ref: "#/components/responses/success"
-
-  /user/verify-email-otp:
-    post:
-      summary: Email OTP verification
-      description: |
-        - OTP verification
-      security:
-        - bearerAuth: []
-      tags:
-        - Email
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: tushar@mailinator.com
-                otp:
-                  type: integer
-                  example: 2356
-              required:
-                - email
-                - otp
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  # Mental state
-  /mentalState/emojis:
-    get:
-      summary: Get emojis listing
-      description: Emoji
-      tags:
-        - Mental State
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-
-  /mentalState/addScore:
-    post:
-      summary: Add your mood score
-      tags:
-        - Mental State
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                emojiId:
-                  type: string
-                  example: 6454abfd803eb158f513b2b8
-                # score:
-                #   type: integer
-                #   example: 1
-              required:
-                - emojiId
-                # - score
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /mentalState:
-    get:
-      summary: Get mental score
-      description: mental score get
-      tags:
-        - Mental State
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-
-  /mentalState/overAllScore:
-    get:
-      summary: Get Over All Score
-      deprecated: true
-      tags:
-        - Mental State
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /mentalState/history:
-    get:
-      summary: Mental state history
-      tags:
-        - Mental State
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /intention:
-    post:
-      summary: Add my intention
-      tags:
-        - My Intention
-      security:
-        - bearerAuth: []
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-              required:
-                - description
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-    get:
-      summary: Get my intention
-      tags:
-        - My Intention
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /intention/{intentionId}:
-    put:
-      summary: Edit Intention
-      tags:
-        - My Intention
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: intentionId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /my/mindBody:
-    get:
-      summary: Get mind body
-      tags:
-        - My Mind-Body || Inspiration
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /my/inspiration:
-    get:
-      summary: Get my inspiration
-      tags:
-        - My Mind-Body || Inspiration
-      security:
-        - bearerAuth: []
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /habit:
-    post:
-      summary: Add My Habits
-      description: |
-        - frequency :-  0 => Daily || 1 => Weekly || 2 => Monthly
-        - 0 -> Su || 1 -> Mo || 2 -> Tu || 3 -> We || 4 -> Th || 5 -> Fr || 6 -> Sa
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Visit the gym at least 2x per week
-                frequency:
-                  type: integer
-                  example: 0
-                days:
-                  type: string
-                  example: [0, 1, 2, 3, 4, 5, 6]
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                startDate:
-                  type: string
-                  example: 1687843361000
-                goalId:
-                  type: string
-                  example: 649938fa7a5889a5db62cbe3
-              required:
-                - name
-                - frequency
-                - description
-                - startDate
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /habit/{habitId}:
-    get:
-      summary: Get single habit
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: habitId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-    delete:
-      summary: Delete habit
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: habitId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-    put:
-      summary: Edit habit
-      description: |
-        - frequency :-  0 => Daily || 1 => Weekly || 2 => Monthly
-        - 0 -> Su || 1 -> Mo || 2 -> Tu || 3 -> We || 4 -> Th || 5 -> Fr || 6 -> Sa
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: habitId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Visit the gym at least 2x per week
-                frequency:
-                  type: integer
-                  example: 0
-                days:
-                  type: string
-                  example: [0, 1, 2, 3, 4, 5, 6]
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                startDate:
-                  type: string
-                  example: 1687843361000
-                goalId:
-                  type: string
-                  example: 649938fa7a5889a5db62cbe3
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /habit/markAsDone/{habitId}:
-    post:
-      summary: Mark As Done Habit
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: habitId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /habit/listing:
-    get:
-      summary: Get all habits listing
-      description: |
-        - frequency :- -1 => All || 0 => Daily || 1 => Weekly || 2 => Monthly
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-        - in: query
-          name: frequency
-          required: true
-          schema:
-            type: string
-            enum:
-              - -1
-              - 0
-              - 1
-              - 2
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /habit/searchHabit:
-    post:
-      summary: Search your habit
-      description: search habit
-      tags:
-        - My Habits
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Visit the gym
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /goal:
-    post:
-      deprecated: false
-      summary: Add My Goal
-      description: |
-        - frequency :-  0 => Short || 1 => Medium || 2 => Long
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Visit the gym at least 2x per week
-                type:
-                  type: integer
-                  example: 1
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                startDate:
-                  type: string
-                  example: 1687843361000
-                endDate:
-                  type: string
-                  example: 1687843361000
-                image:
-                  type: string
-                  format: binary
-                habitsId:
-                  type: array
-                  example:
-                    ["649938fa7a5889a5db62cbe3", "649938fa7a5889a5db62cbe3"]
-
-              required:
-                - name
-                - type
-                - description
-                - startDate
-                - endDate
-                # - image
-                # - habitsId
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /goal/{goalId}:
-    get:
-      summary: Get single goal
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: goalId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-    delete:
-      summary: Delete Goal
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: goalId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /goal/markAsDone/{goalId}:
-    post:
-      summary: Mark As Done Goal
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: goalId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /goal/searchGoal:
-    post:
-      summary: Search your goal
-      description: search goal
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Implement a healthy sleep schedule
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /goal/progressComplete:
-    get:
-      summary: Get all goal listing
-      description: |
-        - markDone :- false -> In Progress || true -> Completed
-      tags:
-        - My Goal
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-        - in: query
-          name: markDone
-          required: true
-          schema:
-            type: string
-            enum: ["false", "true"]
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /journal:
-    post:
-      summary: Add My Journal
-      description: Journal adding
-
-      tags:
-        - My Journal
-      security:
-        - bearerAuth: []
-
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                description:
-                  type: string
-                  example: Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                image:
-                  type: string
-                  format: binary
-
-              required:
-                - description
-                # - image
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-    get:
-      summary: Get all journal listing
-      description: Get journal listing
-      tags:
-        - My Journal
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /ourInsights:
-    get:
-      summary: All Our Insights listing
-      tags:
-        - Our Insights
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-        # - in: query
-        #   name: search
-        #   schema:
-        #     type: string
-        #     example: Search blog
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /ourInsights/{insightsId}:
-    get:
-      summary: Get single Our Insights
-      tags:
-        - Our Insights
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: insightsId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /videoAndPodcasts:
-    get:
-      summary: Get all video and podcasts listing
-      description: |
-        - type =>  1 -> Videos || 2 -> Podcasts
-      tags:
-        - Video & Podcasts
-      security:
-        - bearerAuth: []
-
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            example: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            example: 10
-        - in: query
-          name: type
-          required: true
-          schema:
-            type: string
-            enum:
-              - 1
-              - 2
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /videoAndPodcasts/{videoPodcastId}:
-    get:
-      summary: Get Single Video & Podcasts
-      tags:
-        - Video & Podcasts
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: videoPodcastId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /allCardsListing:
-    get:
-      summary: Get all cards listing
-      description: |
-        - type => Clarity || Courage || Activation || Cubzone
-        - section => 0 -> Inspiration Quotes || 1 -> Affirmations || 2 -> Questions To Contemplate || 3 -> Strategy || 4 -> Cubzone
-      tags:
-        - All Card Listing
-      security:
-        - bearerAuth: []
-
-      parameters:
-        # - in: query
-        #   name: page
-        #   schema:
-        #     type: integer
-        #     example: 1
-        # - in: query
-        #   name: limit
-        #   schema:
-        #     type: integer
-        #     example: 10
-        - in: query
-          name: section
-          required: true
-          schema:
-            type: integer
-            enum:
-              - 0
-              - 1
-              - 2
-              - 3
-              - 4
-        - in: query
-          name: type
-          required: true
-          schema:
-            type: string
-            enum:
-              - Clarity
-              - Courage
-              - Activation
-              - Cubzone
-
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  /allCardsListing/flipCard/{cardId}:
-    post:
-      summary: Flipped cards
-      description: 1 => Inspiration quotes , 2 => affiarmation , 3 => question & conte , 4 => strategy , 5 => little paw
-      tags:
-        - All Card Listing
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: cardId
-          required: true
-          schema:
-            type: string
-            example: 63bd4dcff9e5e2f0107cb2f6
-        - in: query
-          name: types
-          required: true
-          schema:
-            type: integer
-            enum:
-              - 1
-              - 2
-              - 3
-              - 4
-              - 5
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "404":
-          $ref: "#/components/responses/NotFoundError"
-
-  # /affirmation:
-  #   get:
-  #     summary: Get all affirmation listing
-  #     description: |
-  #       - type => Clarity || Courage || Activation
-  #     tags:
-  #       - Affirmations
-  #     security:
-  #       - bearerAuth: []
-
-  #     parameters:
-  #       - in: query
-  #         name: page
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #       - in: query
-  #         name: limit
-  #         schema:
-  #           type: integer
-  #           example: 10
-  #       - in: query
-  #         name: type
-  #         required: true
-  #         schema:
-  #           type: string
-  #           enum:
-  #             - Clarity
-  #             - Courage
-  #             - Activation
-
-  #     responses:
-  #       "200":
-  #         $ref: "#/components/responses/Success"
-  #       "400":
-  #         $ref: "#/components/responses/BadRequestError"
-  #       "401":
-  #         $ref: "#/components/responses/UnauthorizedError"
-  #       "404":
-  #         $ref: "#/components/responses/NotFoundError"
-
-  /subscription:
-    post:
-      # deprecated: true
-      description: Callback after in app purchase
-      summary: Callback after in app purchase
-      tags:
-        - In App Purchase
-      security:
-        - bearerAuth: []
-
-      requestBody:
-        required: true
-        description: ""
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                packageName:
-                  type: string
-                  example: com.unlimited.now.mobile.app
-                productId:
-                  type: string
-                  example: com.unlimited.now.app.subscription.mothly1
-                purchaseToken:
-                  type: string
-                  example: ocdhnfmhknhmapbeecpfdfpg.AO-J1OxJ5_vQGUCExSTF0TMfu9lGD7esadhPKwwSOVAWx_BZur7tXnCB8WI_0u1J0sUotNhK9ZwlplDh6C0GtR8icUU0-zwGDcDCy02IFJIzAJk4mYA0fy41
-                platform:
-                  type: string
-                  example: Android
-                isTestEnvironment:
-                  type: boolean
-                  example: true
-      responses:
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "200":
-          $ref: "#/components/responses/success"
-
-    get:
-      summary: Get user subscription
-      tags:
-        - In App Purchase
-      security:
-        - bearerAuth: []
-      # parameters:
-      #   - in: query
-      #     name: isTestEnvironment
-      #     required: true
-      #     schema:
-      #       type: boolean
-      #       example: true
-      responses:
-        "200":
-          $ref: "#/components/responses/Success"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          $ref: "#/components/responses/ValidationError"

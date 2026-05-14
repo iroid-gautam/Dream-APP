@@ -1,130 +1,143 @@
 import AuthService from "./authService";
-import GetUserResource from "./resources/getUserResource";
-const expiresInSeconds = 31536000;
-
+import passport from "passport";
 
 class AuthController {
-  /**
-   * User Registration
-   * @param {*} req
-   * @param {*} res
-   */
+  static socialAuthStart(req, res, next) {
+    const providerConfig = AuthService.getSocialProviderConfig(
+      req.params.provider
+    );
+
+    return passport.authenticate(providerConfig.strategy, {
+      ...providerConfig.authOptions,
+      session: false,
+    })(req, res, next);
+  }
+
+  static socialAuthCallback(req, res, next) {
+    const providerConfig = AuthService.getSocialProviderConfig(
+      req.params.provider
+    );
+
+    return passport.authenticate(providerConfig.strategy, {
+      session: false,
+    })(req, res, next);
+  }
 
   static async register(req, res) {
-    const data = [];
-    data.reqData = req.body;
-    data.file = req.file;
-    const register = await AuthService.register(data);
-
+    const register = await AuthService.register(req.body);
     return res.send({ data: register });
   }
 
-  /**
-   * Verify OTP
-   * @param {*} req
-   * @param {*} res
-   */
   static async verifyOtp(req, res) {
-    const data = [];
-    data.reqData = req.body;
-
-    const verifyOtp = await AuthService.verifyOtp(data);
-
+    const verifyOtp = await AuthService.verifyOtp(req.body);
     return res.send({ data: verifyOtp });
   }
 
-  /**
-   * Resend Otp
-   * @param {*} req
-   * @param {*} res
-   */
   static async resendOtp(req, res) {
-    const data = req.body;
-
-    const resendOtp = await AuthService.resendOtp(data);
-
+    await AuthService.resendOtp(req.body);
     return res.send({
       message: "OTP sent to your email. Please check your inbox.",
     });
   }
 
-  /**
-   * login user
-   * @param {*} req 
-   * @param {*} res 
-   * @returns 
-   */
   static async login(req, res) {
-    const data = req.body;
+    const login = await AuthService.login(req.body);
+    return res.send({ data: login });
+  }
 
-    const login = await AuthService.login(data);
+  static async refreshTokenToGenerateAccessToken(req, res) {
+    const data = await AuthService.refreshTokenToGenerateAccessToken(
+      req.body.refreshToken
+    );
+    return res.send({ data });
+  }
 
-    return res.send({
-      data: login
-      // ... new GetUserResource(login),
-      // data: {
-      //   auth: {
-      //     tokenType: "Bearer",
-      //     accessToken: login.token,
-      //     refreshToken: null,
-      //     expiresIn: expiresInSeconds,
-      //   },
-      // },
+  static async logOut(req, res) {
+    await AuthService.logOut({
+      reqData: req.body,
+      authUser: req.user,
     });
 
+    return res.send({ message: "Logged out successfully." });
   }
 
-
-  /**
-     * @description: Refress token to generate access token
-     * @param {*} req 
-     * @param {*} res 
-     * @returns 
-     */
-  static async refreshTokenToGenerateAccessToken(req, res) {
-    const data = await AuthService.refreshTokenToGenerateAccessToken(req.body.refreshToken);
-    return res.send({ data: data });
+  static async forgotPassword(req, res) {
+    await AuthService.forgotPassword(req.body.email);
+    return res.send({
+      message: "OTP sent to your email. Please use it to reset password.",
+    });
   }
 
-
-  /**
-   * log out user 
-   * @param {*} req 
-   * @param {*} res 
-   */
-  static async logOut(req, res) {
-    const data = {
-      reqData: req.body,
-      authUser: req.user
-    };
-
-    await AuthService.logOut(data);
-
-    res.send({ message: "Logged out successfully." });
-  }
-
-  /**
-   * reset password
-   * @param {*} req 
-   * @param {*} res 
-   */
   static async resetPassword(req, res) {
-    await AuthService.resetPassword(req.body.email);
-
-    return res.send({ message: "Please check your email for instructions to reset your password." });
+    await AuthService.resetPassword(req.body);
+    return res.send({ message: "Password reset successfully." });
   }
 
+  static async changePassword(req, res) {
+    await AuthService.changePassword(req.user, req.body);
+    return res.send({ message: "Password changed successfully." });
+  }
 
-  /**
-     * @description : check version
-     * @param {*} req 
-     * @param {*} res 
-     * @param {*} next 
-     * @returns 
-     */
-  static async checkVersion(req, res, next) {
-    const message = await AuthService.checkVersion(req.body);
-    return res.send(message)
+  static async updateProfile(req, res) {
+    const result = await AuthService.updateProfile({
+      authUser: req.user,
+      body: req.body,
+    });
+
+    const isEmailUpdateRequested = Boolean(req.body?.newEmail);
+
+    return res.send({
+      message: isEmailUpdateRequested
+        ? "Profile updated and OTP sent to your new email. Please verify to continue."
+        : "Profile updated successfully.",
+      data: result,
+    });
+  }
+
+  static async verifyEmailUpdate(req, res) {
+    const user = await AuthService.verifyEmailUpdate({
+      authUser: req.user,
+      body: req.body,
+    });
+
+    return res.send({
+      message: "Email updated successfully.",
+      data: user,
+    });
+  }
+
+  static async resendEmailUpdateOtp(req, res) {
+    await AuthService.resendEmailUpdateOtp({
+      authUser: req.user,
+    });
+
+    return res.send({
+      message: "OTP sent to your new email. Please verify to continue.",
+    });
+  }
+
+  static async deleteAccount(req, res) {
+    await AuthService.deleteAccount({
+      authUser: req.user,
+    });
+
+    return res.send({
+      message: "Account deleted successfully.",
+    });
+  }
+
+  static async oauthCallback(req, res) {
+    const provider = req.params.provider || req.user.oauthProvider;
+    const data = await AuthService.issueAuthenticationPayload(
+      req.user,
+      provider
+    );
+
+    return res.send({ data });
+  }
+
+  static async me(req, res) {
+    return res.send({ data: req.user });
   }
 }
 

@@ -1,17 +1,48 @@
-import mongoose from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "./connection";
 
-const refreshSchema = new mongoose.Schema({
+const RefreshToken = sequelize.define(
+  "refreshToken",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: "user_id",
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
     accessToken: {
-        type: String
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: "access_token",
     },
     token: {
-        type: String,
-        trim: true
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
     },
-}, {
-    timestamps: true
-});
-
-const RefreshToken = mongoose.model('refreshtoken', refreshSchema);
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: "expires_at",
+    },
+    isRevoked: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_revoked",
+    },
+  },
+  {
+    tableName: "refresh_tokens",
+  }
+);
 
 export default RefreshToken;

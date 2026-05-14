@@ -1,76 +1,118 @@
-import mongoose, { Schema } from "mongoose";
-import { BCRYPT } from "../src/common/constants/constant";
 import bcrypt from "bcryptjs";
+import { DataTypes } from "sequelize";
+import sequelize from "./connection";
+import { AUTH_PROVIDER, BCRYPT } from "../src/common/constants/constant";
 
-const userSchema = new Schema( 
-    {
-        name: {
-            type: String,
-            required: false,
-        },
-        email: {
-            type: String,
-            required: false,
-        },
-        password: {
-            type: String,
-            required: false,
-        },
-        profileImage: {
-            type: String,
-            required: false,
-            default: null,
-        },
-        termCondition: {
-            type: Number,
-            default: 0,
-        },
-        isVerified: {
-            type: Boolean,
-            required: false,
-            default: false,
-        },
-        isForgotPasswordVerified: {
-            type: Boolean,
-            required: false,
-            default: false,
-        },
-        resetToken: {
-            type: String,
-            allowNull: true,
-        },
+const User = sequelize.define(
+  "user",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    {
-        timestamps: {
-          createdAt: "created_at",
-          updatedAt: "updated_at",
+    name: {
+      type: DataTypes.STRING(120),
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING(160),
+      allowNull: true,
+      unique: true,
+      set(value) {
+        this.setDataValue("email", value ? value.trim().toLowerCase() : null);
+      },
+    },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    profileImage: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      field: "profile_image",
+    },
+    termCondition: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: "term_condition",
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_verified",
+    },
+    isForgotPasswordVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_forgot_password_verified",
+    },
+    resetToken: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "reset_token",
+    },
+    providerType: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: AUTH_PROVIDER.LOCAL,
+      field: "provider_type",
+      validate: {
+        isIn: [Object.values(AUTH_PROVIDER)],
+      },
+    },
+    providerId: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      unique: true,
+      field: "provider_id",
+    },
+    lastLoginProvider: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: null,
+      field: "last_login_provider",
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_deleted",
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+      field: "deleted_at",
+    },
+  },
+  {
+    tableName: "users",
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          user.password = await bcrypt.hash(user.password, BCRYPT.SALT_ROUND);
         }
-    }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed("password") && user.password) {
+          user.password = await bcrypt.hash(user.password, BCRYPT.SALT_ROUND);
+        }
+      },
+    },
+  }
 );
 
-// pre-save middleware
-userSchema.pre("save", async function (next) {
-    const user = this;
-    if (user.password) {
-      user.password = await bcrypt.hash(user.password, BCRYPT.SALT_ROUND); // hash password
-    }
-    next();
-});
+User.prototype.isPasswordMatch = async function (password) {
+  if (!this.password) {
+    return false;
+  }
 
-userSchema.pre('update', async function () {
-    const userdata = this.getUpdate().$set;
-  
-    if (userdata.password) {
-      userdata.password = await bcrypt.hash(userdata.password,  BCRYPT.SALT_ROUND);
-    }
-});
-  
-
-userSchema.methods.isPasswordMatch = async function (password) {
-    const user = this;
-    return bcrypt.compare(password, user.password);
+  return bcrypt.compare(password, this.password);
 };
-
-const User = mongoose.model('users', userSchema);
 
 export default User;

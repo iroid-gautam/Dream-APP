@@ -1,32 +1,43 @@
-import mongoose, { Schema } from 'mongoose';
+import { DataTypes } from "sequelize";
+import sequelize from "./connection";
 
-const accessTokenSchema = new mongoose.Schema({
-    userId: { 
-        type: Schema.Types.ObjectId, 
-        ref: "users" 
+const AccessToken = sequelize.define(
+  "accessToken",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: "user_id",
+      references: {
+        model: "users",
+        key: "id",
+      },
     },
     token: {
-        type: String,
-        required: true,
-        unique: true
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
     },
     isRevoked: {
-        type: Boolean,
-        required: false,
-        default: false,
-      },
-    expiresAt: {
-        type: Date,
-        required: false,
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_revoked",
     },
-},
-{
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    }
-})
-
-const AccessToken = mongoose.model('access_tokens', accessTokenSchema);
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "expires_at",
+    },
+  },
+  {
+    tableName: "access_tokens",
+  }
+);
 
 export default AccessToken;

@@ -1,56 +1,113 @@
-/**
- * emailService.js
- * @description :: exports function used in sending mails using nodemailer
- */
-
 import nodeMailer from "nodemailer";
-import ejs from "ejs";
-import path from "path";
-import { logo } from "../helper";
+import dns from "dns/promises";
+import logger from "../logger";
 
-const sendMail = async ( obj, template ) => {
-    let transporter = nodeMailer.createTransport({
-        host : process.env.MAIL_HOST,
-        port : process.env.MAIL_PORT,
-        auth: {
-            user: process.env.MAIL_USERNAME,
-            pass: process.env.MAIL_PASSWORD,
-        },
+const mailLogger = logger.withLabel("MAIL");
+const isLocalMailEnv =
+  `${process.env.NODE_ENV || process.env.ENV || ""}`.toLowerCase() === "local";
+
+const sendMail = async (obj) => {
+  if (
+    !process.env.MAIL_HOST ||
+    !process.env.MAIL_PORT ||
+    !process.env.MAIL_USERNAME ||
+    !process.env.MAIL_PASSWORD
+  ) {
+    mailLogger.warn("Mail config missing. Skipping email send.", {
+      to: obj?.to || null,
+      subject: obj?.subject || null,
+    });
+    return true;
+  }
+
+  const port = Number(process.env.MAIL_PORT);
+  const secure = port === 465;
+  const resolvedHost = await dns.lookup(process.env.MAIL_HOST, { family: 4 });
+  const socketHost = resolvedHost?.address || process.env.MAIL_HOST;
+
+  mailLogger.info("Resolved SMTP host.", {
+    host: process.env.MAIL_HOST,
+    socketHost,
+    family: resolvedHost?.family || null,
+  });
+
+  const transporter = nodeMailer.createTransport({
+    host: socketHost,
+    port,
+    secure,
+    requireTLS: !secure,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    auth: {
+      user: process.env.MAIL_USERNAME,
+      pass: process.env.MAIL_PASSWORD,
+    },
+    tls: {
+      minVersion: "TLSv1.2",
+      servername: process.env.MAIL_HOST,
+      rejectUnauthorized: !isLocalMailEnv,
+    },
+  });
+
+  const html = obj.html
+    ? obj.html
+    : `<p>${obj.message || ""}</p>${obj.otp ? `<p>OTP: ${obj.otp}</p>` : ""}`;
+
+  mailLogger.info("Preparing to send email.", {
+    host: process.env.MAIL_HOST,
+    socketHost,
+    port,
+    secure,
+    requireTLS: !secure,
+    rejectUnauthorized: !isLocalMailEnv,
+    to: obj?.to || null,
+    subject: obj?.subject || null,
+    username: process.env.MAIL_USERNAME || null,
+  });
+
+  try {
+    await transporter.verify();
+    mailLogger.info("SMTP verification succeeded.", {
+      host: process.env.MAIL_HOST,
+      socketHost,
+      port,
+      secure,
+      rejectUnauthorized: !isLocalMailEnv,
     });
 
-    if ( !Array.isArray( obj.to ) ) {
-        obj.to = [obj.to];
-    }
+    await transporter.sendMail({
+      from: `${process.env.APP_NAME} <${process.env.MAIL_USERNAME}>`,
+      to: obj.to,
+      subject: obj.subject,
+      html,
+    });
 
-    const data = {
-        ...obj,
-        APP_NAME: process.env.APP_NAME,
-        logo: logo(),
-    };
+    mailLogger.info("Email sent successfully.", {
+      to: obj?.to || null,
+      subject: obj?.subject || null,
+    });
+  } catch (error) {
+    mailLogger.error("Email send failed.", {
+      host: process.env.MAIL_HOST,
+      socketHost,
+      port,
+      secure,
+      requireTLS: !secure,
+      rejectUnauthorized: !isLocalMailEnv,
+      to: obj?.to || null,
+      subject: obj?.subject || null,
+      message: error?.message || "Unknown error",
+      code: error?.code || null,
+      command: error?.command || null,
+      response: error?.response || null,
+      responseCode: error?.responseCode || null,
+      stack: error?.stack || null,
+    });
+    throw error;
+  }
 
-    const htmlText = await ejs.renderFile(
-        path.join(`${__dirname}/../../../views/email_templates/${template}.ejs`),
-        data
-    );
-    
-    return await Promise.all(
-        obj.to.map((emailId) => {
-          let mailOpts = {
-            from: `${process.env.APP_NAME} <${process.env.MAIL_USERNAME}>`,
-            to: emailId,
-            subject: obj.subject,
-            html: htmlText,
-          };
-          transporter.sendMail(mailOpts, function (err, response) {
-            if (err) {
-              console.log(`Mail error : ${err}`);
-            } else {
-              console.log(`Mail sent : ${mailOpts.to}`);
-            }
-          });
-        })
-    );
-    
-}
+  return true;
+};
 
 module.exports = sendMail;

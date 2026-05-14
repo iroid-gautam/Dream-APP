@@ -1,33 +1,31 @@
 import cron from "node-cron";
-import { weeklySendNotification, monthlySendNotification, dailySendNotification } from "./habitsNotification";
+import logger from "../src/common/logger";
+import { runReminderDispatch } from "./reminderNotification.job";
 
+const reminderLogger = logger.withLabel("REMINDER_JOB");
+const timezone = process.env.REMINDER_JOB_TIMEZONE || "UTC";
 
-// Every day send notification daily Sydney time
-cron.schedule('0 6 * * *', async () => {
-    console.log('Every day 6 am cron call (Daily)');
-    dailySendNotification()
-}, {
+// Every minute check due goal reminders.
+cron.schedule(
+  "* * * * *",
+  async () => {
+    reminderLogger.info("Reminder cron tick started.");
+    try {
+      await runReminderDispatch();
+    } catch (error) {
+      reminderLogger.error("Reminder cron tick failed.", {
+        message: error?.message || "Unknown error",
+        stack: error?.stack || null,
+      });
+    }
+  },
+  {
     scheduled: true,
-    timezone: "Australia/Sydney"
-});
+    timezone,
+  }
+);
 
-
-
-// Every monday send notifications week Sydney time
-cron.schedule('0 9 * * MON', async () => {
-    console.log("Every monday 9 am cron call (Weekly)");
-    weeklySendNotification()
-}, {
-    scheduled: true,
-    timezone: "Australia/Sydney"
-});
-
-
-// Every sunday send notifications monthly Sydney time
-cron.schedule('0 9 * * SUN', async () => {
-    console.log("Every sunday 9 am cron call(Monthly)");
-    monthlySendNotification()
-}, {
-    scheduled: true,
-    timezone: "Australia/Sydney"
+reminderLogger.info("Reminder notification cron started.", {
+  schedule: "* * * * *",
+  timezone,
 });
