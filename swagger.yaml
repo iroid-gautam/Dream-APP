@@ -18,6 +18,10 @@ info:
     - `1` = registration OTP
     - `2` = login OTP
     - `3` = forgot password OTP
+
+    termCondition mapping used in registration API:
+    - `0` = accepted
+    - `1` = not accepted
   version: 1.0.0
 
 servers:
@@ -41,6 +45,8 @@ tags:
     description: Goal management endpoints
   - name: Device Tokens
     description: FCM device token registration and removal endpoints
+  - name: Help Support
+    description: Authenticated help, feedback, feature request, and problem report submission endpoint
 
 components:
   securitySchemes:
@@ -371,6 +377,61 @@ components:
         data:
           $ref: "#/components/schemas/DeviceToken"
 
+    HelpSupportRequestCreate:
+      type: object
+      required:
+        - description
+      properties:
+        type:
+          type: string
+          enum:
+            - feedback
+            - feature_request
+            - problem_report
+          example: feedback
+          description: Help and support request type. Defaults to `feedback` when omitted.
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          example: I would like a weekly reminder summary in addition to the daily reminder.
+          description: Detailed user message for feedback, feature request, or problem report.
+
+    HelpSupportRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 17e0ff34-2c28-4b70-b56a-9cf8ca137556
+        userId:
+          type: string
+          format: uuid
+          example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
+        type:
+          type: string
+          enum:
+            - feedback
+            - feature_request
+            - problem_report
+          example: feedback
+        description:
+          type: string
+          example: I would like a weekly reminder summary in addition to the daily reminder.
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-05-14T10:30:00.000Z"
+
+    HelpSupportRequestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Help and support request submitted successfully.
+        data:
+          $ref: "#/components/schemas/HelpSupportRequest"
+
   responses:
     UnauthorizedError:
       description: Unauthorized
@@ -411,6 +472,9 @@ paths:
   /auth/register:
     post:
       summary: Register user
+      description: |
+        Registers a local account and sends registration OTP for verification.
+        If a previously deleted account exists for the same email, account is reactivated and registration OTP is sent.
       tags:
         - Auth
       requestBody:
@@ -442,7 +506,11 @@ paths:
                   example: password@123
                 termCondition:
                   type: number
+                  enum:
+                    - 0
+                    - 1
                   example: 0
+                  description: termCondition => 0 - accepted, 1 - not accepted
       responses:
         "200":
           description: Registration created or deleted account reactivated and OTP sent
@@ -599,6 +667,9 @@ paths:
   /auth/refreshToken:
     post:
       summary: Refresh access token
+      description: |
+        Generates a new access token using a valid non-revoked refresh token.
+        Existing access/refresh token pair is rotated as part of this flow.
       tags:
         - Auth
       requestBody:
@@ -629,6 +700,7 @@ paths:
   /auth/logout:
     post:
       summary: Logout user
+      description: Revokes current access token and optionally revokes provided refresh token.
       tags:
         - Auth
       security:
@@ -656,6 +728,7 @@ paths:
   /auth/forgot-password:
     post:
       summary: Request forgot password OTP
+      description: Sends forgot-password OTP for local sign-in users.
       tags:
         - Auth OTP
       requestBody:
@@ -688,6 +761,7 @@ paths:
   /auth/reset-password:
     post:
       summary: Reset password
+      description: Resets password after successful forgot-password OTP verification.
       tags:
         - Auth OTP
       requestBody:
@@ -730,6 +804,7 @@ paths:
   /auth/change-password:
     post:
       summary: Change password
+      description: Changes authenticated local user's password after validating old password.
       tags:
         - Auth Profile
       security:
@@ -953,6 +1028,7 @@ paths:
   /auth/me:
     get:
       summary: Get authenticated user
+      description: Returns profile details of the currently authenticated user.
       tags:
         - Auth
       security:
@@ -1209,6 +1285,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DeviceTokenResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /help-support:
+    post:
+      summary: Submit help and support request
+      description: |
+        Allows an authenticated user to submit a help and support request.
+
+        Supported request types:
+        - `feedback`
+        - `feature_request`
+        - `problem_report`
+
+        If `type` is not provided, the backend stores it as `feedback`.
+        The request is automatically linked to the authenticated user, and one user can submit multiple help/support requests.
+      tags:
+        - Help Support
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HelpSupportRequestCreate"
+      responses:
+        "201":
+          description: Help and support request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelpSupportRequestResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
