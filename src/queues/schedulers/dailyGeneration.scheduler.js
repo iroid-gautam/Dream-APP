@@ -16,7 +16,7 @@ export const registerDailyGenerationScheduler = async () => {
       runAt: new Date().toISOString(),
     },
     {
-      jobId: "generation-scheduler:repeatable",
+      jobId: "generation-scheduler-repeatable",
       repeat: {
         every: SCHEDULER_REPEAT_EVERY_MS,
       },

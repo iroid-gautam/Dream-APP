@@ -19,7 +19,7 @@ export const addGenerationSchedulerJob = async ({
       runAt,
     },
     {
-      jobId: `generation-scheduler:${runAt}`,
+      jobId: `generation-scheduler-${runAt}`,
     }
   );
 };

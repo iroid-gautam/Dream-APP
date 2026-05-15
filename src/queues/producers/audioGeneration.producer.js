@@ -17,7 +17,7 @@ export const addAudioGenerationJob = async ({ generationId, goalId, userId }) =>
       userId,
     },
     {
-      jobId: `audio-generation:${generationId}`,
+      jobId: `audio-generation-${generationId}`,
     }
   );
 };

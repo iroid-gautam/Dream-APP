@@ -21,7 +21,7 @@ export const addNotificationDeliveryJob = async ({
       userId,
     },
     {
-      jobId: `notification-delivery:${generationId}`,
+      jobId: `notification-delivery-${generationId}`,
     }
   );
 };

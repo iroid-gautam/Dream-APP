@@ -24,7 +24,7 @@ export const addScriptGenerationJob = async ({
       userId,
     },
     {
-      jobId: `script-generation:${generationId}`,
+      jobId: `script-generation-${generationId}`,
       delay: safeDelayMs,
     }
   );
