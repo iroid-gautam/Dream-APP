@@ -249,6 +249,45 @@ components:
           type: string
           format: date-time
           nullable: true
+        latestGeneration:
+          allOf:
+            - $ref: "#/components/schemas/GenerationSnapshot"
+          nullable: true
+
+    GenerationSnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3b0f39ff-2d43-4f3b-9364-42796a3d5c8d
+        generationDate:
+          type: string
+          format: date-time
+          example: "2026-05-15T00:00:00.000Z"
+        generationStatus:
+          type: string
+          example: audio_processing
+        delivered:
+          type: boolean
+          example: false
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        script:
+          type: object
+          nullable: true
+        audio:
+          type: object
+          nullable: true
+        retryCount:
+          type: integer
+          example: 0
+        errorLogs:
+          type: array
+          items:
+            type: object
 
     GoalResponse:
       type: object
@@ -289,9 +328,15 @@ components:
           type: object
           properties:
             currentGoal:
-              type: object
+              allOf:
+                - $ref: "#/components/schemas/Goal"
               nullable: true
               description: Currently active goal for authenticated user. Null when no active goal exists.
+            latestGeneration:
+              allOf:
+                - $ref: "#/components/schemas/GenerationSnapshot"
+              nullable: true
+              description: Latest generation lifecycle snapshot for the active goal.
             history:
               type: array
               items:
@@ -923,6 +968,7 @@ paths:
       description: |
         Returns two separate objects in one API response:
         - `data.currentGoal`: currently active goal (or null)
+        - `data.latestGeneration`: latest generation lifecycle snapshot for active goal (or null)
         - `data.history`: day-wise history in descending date order
         Pagination (`page`, `limit`) applies only to `data.history`.
       tags:

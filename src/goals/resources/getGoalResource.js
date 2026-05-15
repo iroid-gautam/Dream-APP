@@ -20,6 +20,7 @@ export default class GetGoalResource {
     this.deactivatedAt = data.deactivatedAt;
     this.reminderEnabled = data.reminderEnabled;
     this.lastReminderSentAt = data.lastReminderSentAt;
+    this.latestGeneration = data.latestGeneration || null;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

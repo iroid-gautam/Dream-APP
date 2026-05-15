@@ -3,6 +3,7 @@ import User from "../../model/user";
 import GodWhisper from "../../model/godWhisper";
 import sequelize from "../../model/connection";
 import CommonService from "../common/services/common.service";
+import { addScriptGenerationJob } from "../queues/producers/scriptGeneration.producer";
 import GetGoalResource from "./resources/getGoalResource";
 import GetGoalHistoryDayResource from "./resources/getGoalHistoryDayResource";
 import {
@@ -12,6 +13,91 @@ import {
 } from "../common/error-exceptions";
 
 class GoalService {
+  static getLocalTimeParts(timeZone, date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+
+    const mapped = {};
+    parts.forEach((part) => {
+      if (part.type !== "literal") {
+        mapped[part.type] = part.value;
+      }
+    });
+
+    return {
+      date: `${mapped.year}-${mapped.month}-${mapped.day}`,
+      time: `${mapped.hour}:${mapped.minute}`,
+    };
+  }
+
+  static buildGenerationDateIso(timeZone, now = new Date()) {
+    const local = this.getLocalTimeParts(timeZone, now);
+    return new Date(`${local.date}T00:00:00.000Z`).toISOString();
+  }
+
+  static resolveDailyGenerationModel() {
+    return sequelize.models.dailyGoalGeneration || null;
+  }
+
+  static async ensureDailyGenerationAndQueue({ goal }) {
+    const DailyGoalGeneration = this.resolveDailyGenerationModel();
+    if (!DailyGoalGeneration) {
+      return null;
+    }
+
+    const generationDate = this.buildGenerationDateIso(goal.timezone);
+    let generation = await CommonService.findOne(DailyGoalGeneration, {
+      goalId: goal.id,
+      generationDate,
+    });
+
+    if (!generation) {
+      generation = await CommonService.createOne(DailyGoalGeneration, {
+        goalId: goal.id,
+        userId: goal.userId,
+        generationDate,
+        generationStatus: "pending",
+        retryCount: 0,
+        delivered: false,
+        errorLogs: [],
+      });
+    }
+
+    const delayMs = 0;
+    await addScriptGenerationJob({
+      generationId: generation.id,
+      goalId: goal.id,
+      userId: goal.userId,
+      delayMs,
+    });
+
+    return generation;
+  }
+
+  static async getLatestGenerationForGoal({ goalId }) {
+    const DailyGoalGeneration = this.resolveDailyGenerationModel();
+    if (!DailyGoalGeneration || !goalId) {
+      return null;
+    }
+
+    return CommonService.findOne(
+      DailyGoalGeneration,
+      {
+        goalId,
+      },
+      {
+        order: [["generationDate", "DESC"]],
+      }
+    );
+  }
+
   static async ensureValidActiveUser(authUserId) {
     const user = await CommonService.findByPk(User, authUserId);
 
@@ -146,6 +232,8 @@ class GoalService {
         { transaction }
       );
 
+      await this.ensureDailyGenerationAndQueue({ goal });
+
       return this.transformGoal(goal, selectedGodWhispers);
     });
   }
@@ -165,9 +253,25 @@ class GoalService {
     );
 
     let currentGoal = null;
+    let latestGeneration = null;
     if (goal) {
       const godWhispers = await this.findGodWhispersByIds(goal.godWhisperIds);
-      currentGoal = this.transformGoal(goal, godWhispers);
+      latestGeneration = await this.getLatestGenerationForGoal({ goalId: goal.id });
+      const latestGenerationPayload = latestGeneration
+        ? {
+            id: latestGeneration.id,
+            generationDate: latestGeneration.generationDate,
+            generationStatus: latestGeneration.generationStatus,
+            delivered: latestGeneration.delivered,
+            deliveredAt: latestGeneration.deliveredAt,
+            script: latestGeneration.script,
+            audio: latestGeneration.audio,
+            retryCount: latestGeneration.retryCount,
+            errorLogs: latestGeneration.errorLogs,
+          }
+        : null;
+
+      currentGoal = this.transformGoal(goal, godWhispers, latestGenerationPayload);
     }
 
     const { history, meta } = await this.buildPaginatedGoalHistory({
@@ -178,6 +282,7 @@ class GoalService {
     return {
       data: {
         currentGoal,
+        latestGeneration: currentGoal?.latestGeneration || null,
         history,
       },
       meta,
@@ -287,9 +392,10 @@ class GoalService {
     return uniqueIds.map((id) => whisperMap.get(id)).filter(Boolean);
   }
 
-  static transformGoal(goal, godWhispers = []) {
+  static transformGoal(goal, godWhispers = [], latestGeneration = null) {
     return new GetGoalResource({
       ...goal.get({ plain: true }),
+      latestGeneration,
       godWhispers: (godWhispers || []).map((godWhisper) => ({
         id: godWhisper.id,
         message: godWhisper.message,
