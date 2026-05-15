@@ -39,6 +39,27 @@ const removeTempFileIfExists = ({ filePath }) => {
   }
 };
 
+const normalizeScriptPayload = (script) => {
+  if (!script) {
+    return null;
+  }
+
+  if (typeof script === "string") {
+    try {
+      const parsed = JSON.parse(script);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  if (typeof script === "object") {
+    return script;
+  }
+
+  return null;
+};
+
 const processAudioJob = async (job) => {
   const DailyGoalGeneration = resolveDailyGenerationModel();
   if (!DailyGoalGeneration) {
@@ -64,7 +85,9 @@ const processAudioJob = async (job) => {
     return { skipped: true, reason: "audio_already_exists" };
   }
 
-  if (!generation.script?.text) {
+  const scriptPayload = normalizeScriptPayload(generation.script);
+
+  if (!scriptPayload?.text) {
     throw new Error("Script text missing for audio generation.");
   }
 
@@ -77,7 +100,7 @@ const processAudioJob = async (job) => {
   const hasLocalTempFile = fs.existsSync(tempAudioPath);
 
   if (!hasLocalTempFile) {
-    const sanitizedScript = TTSSanitizerService.sanitize(generation.script.text);
+    const sanitizedScript = TTSSanitizerService.sanitize(scriptPayload.text);
     if (!sanitizedScript) {
       throw new Error("Script text became empty after TTS sanitization.");
     }

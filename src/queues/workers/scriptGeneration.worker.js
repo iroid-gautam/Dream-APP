@@ -14,6 +14,7 @@ import { QUEUE_CONCURRENCY } from "../configs/queue-options";
 import { addAudioGenerationJob } from "../producers/audioGeneration.producer";
 
 const queueLogger = logger.withLabel("QUEUE_SCRIPT_WORKER");
+const isProductionEnvironment = process.env.ENV === "production";
 
 const resolveDailyGenerationModel = () => {
   return sequelize.models.dailyGoalGeneration || null;
@@ -68,6 +69,19 @@ const fetchGoalScriptInput = async ({ goalId }) => {
   };
 };
 
+const buildLocalDevelopmentScript = ({ username, dream, godWhispers, tone }) => {
+  const safeUsername = username || "User";
+  const safeDream = dream || "your dream";
+  const whisperLine = Array.isArray(godWhispers) && godWhispers.length
+    ? ` Remember this: ${godWhispers[0]}.`
+    : "";
+  const safeTone = tone || "motivational";
+
+  return `${safeUsername}, today is your day to move toward ${safeDream}. Stay disciplined, take one clear action right now, and keep your focus strong.${whisperLine} Keep this ${safeTone} energy alive.You are not late.
+
+`;
+};
+
 const processScriptJob = async (job) => {
   const DailyGoalGeneration = resolveDailyGenerationModel();
   if (!DailyGoalGeneration) {
@@ -106,10 +120,21 @@ const processScriptJob = async (job) => {
     tone,
   });
 
-  const scriptResult = await OpenAIService.generateMotivationScript({
-    systemPrompt: prompts.systemPrompt,
-    userPrompt: prompts.userPrompt,
-  });
+  const scriptResult = isProductionEnvironment
+    ? await OpenAIService.generateMotivationScript({
+        systemPrompt: prompts.systemPrompt,
+        userPrompt: prompts.userPrompt,
+      })
+    : {
+        text: buildLocalDevelopmentScript({
+          username: sanitizedInput.username,
+          dream: sanitizedInput.dream,
+          godWhispers: sanitizedInput.godWhispers,
+          tone,
+        }),
+        model: "local-development-script",
+        provider: "local",
+      };
 
   const validatedText = ResponseValidatorService.validateScript({
     text: scriptResult.text,
