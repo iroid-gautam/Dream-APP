@@ -12,6 +12,9 @@ const queueLogger = logger.withLabel("QUEUE_SCHEDULER_WORKER");
 const GENERATION_BUFFER_MINUTES = Number(
   process.env.GENERATION_BUFFER_MINUTES || 30
 );
+const GENERATION_JITTER_MAX_SECONDS = Number(
+  process.env.GENERATION_JITTER_MAX_SECONDS || 0
+);
 
 const getLocalTimeParts = (timeZone, date = new Date()) => {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -80,10 +83,15 @@ const ensureDailyGenerationAndQueue = async (goal) => {
     errorLogs: [],
   });
 
+  const jitterMaxMs = Math.max(0, GENERATION_JITTER_MAX_SECONDS) * 1000;
+  const jitterDelayMs =
+    jitterMaxMs > 0 ? Math.floor(Math.random() * (jitterMaxMs + 1)) : 0;
+
   await addScriptGenerationJob({
     generationId: generation.id,
     goalId: goal.id,
     userId: goal.userId,
+    delayMs: jitterDelayMs,
   });
 };
 

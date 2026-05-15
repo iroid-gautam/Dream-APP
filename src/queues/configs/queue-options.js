@@ -29,3 +29,13 @@ export const AUDIO_JOB_OPTIONS = {
   removeOnComplete: true,
   removeOnFail: false,
 };
+
+export const NOTIFICATION_JOB_OPTIONS = {
+  attempts: getQueueNumber("QUEUE_NOTIFICATION_ATTEMPTS", 5),
+  backoff: {
+    type: "exponential",
+    delay: getQueueNumber("QUEUE_NOTIFICATION_BACKOFF_DELAY_MS", 5000),
+  },
+  removeOnComplete: true,
+  removeOnFail: false,
+};

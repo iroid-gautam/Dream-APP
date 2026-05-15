@@ -8,7 +8,14 @@ const scriptGenerationQueue = new Queue(QUEUE_NAMES.SCRIPT_GENERATION, {
   defaultJobOptions: DEFAULT_JOB_OPTIONS,
 });
 
-export const addScriptGenerationJob = async ({ generationId, goalId, userId }) => {
+export const addScriptGenerationJob = async ({
+  generationId,
+  goalId,
+  userId,
+  delayMs = 0,
+}) => {
+  const safeDelayMs = Number(delayMs) > 0 ? Number(delayMs) : 0;
+
   return scriptGenerationQueue.add(
     "script-generation-run",
     {
@@ -18,6 +25,7 @@ export const addScriptGenerationJob = async ({ generationId, goalId, userId }) =
     },
     {
       jobId: `script-generation:${generationId}`,
+      delay: safeDelayMs,
     }
   );
 };

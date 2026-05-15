@@ -33,7 +33,7 @@ const processNotificationJob = async (job) => {
     return { skipped: true, reason: "daily_goal_generation_model_missing" };
   }
 
-  const { generationId, userId } = job.data;
+  const { generationId, goalId, userId } = job.data;
   const generation = await CommonService.findByPk(DailyGoalGeneration, generationId);
 
   if (!generation) {
@@ -64,7 +64,9 @@ const processNotificationJob = async (job) => {
     notification: buildNotificationMessage(generation),
     data: {
       type: "daily_motivation_ready",
+      goalId: `${goalId || ""}`,
       generationId,
+      eventVersion: "v1",
     },
   });
 
@@ -129,6 +131,8 @@ notificationDeliveryWorker.on("failed", async (job, error) => {
       const logs = Array.isArray(generation.errorLogs) ? generation.errorLogs : [];
       logs.push({
         step: "notification_delivery",
+        goalId: job?.data?.goalId,
+        userId: job?.data?.userId,
         message: error.message,
         timestamp: new Date().toISOString(),
       });
