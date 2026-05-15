@@ -38,6 +38,14 @@ const User = sequelize.define(
       defaultValue: null,
       field: "profile_image",
     },
+    timezone: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: null,
+      set(value) {
+        this.setDataValue("timezone", value ? value.trim() : null);
+      },
+    },
     termCondition: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -29,21 +29,13 @@ servers:
 
 tags:
   - name: Auth
-    description: Core authentication endpoints
-  - name: Auth OTP
-    description: OTP verification flows
-  - name: Auth Profile
-    description: Authenticated profile operations
-  - name: Auth Email Update
-    description: Authenticated email update flows
-  - name: Auth Account
-    description: Account lifecycle operations
-  - name: Auth OAuth
-    description: OAuth authentication endpoints
+    description: Complete authentication workflow including registration/login OTP, token lifecycle, profile/account operations, and OAuth.
+  - name: User
+    description: Authenticated user profile/session operations.
   - name: Goals
-    description: Goal management endpoints
+    description: Goal lifecycle and motivation summary endpoints including active goal, history, and generation state.
   - name: Device Tokens
-    description: FCM device token registration and removal endpoints
+    description: FCM device token registration/removal endpoints used for notification delivery.
   - name: Help Support
     description: Authenticated help, feedback, feature request, and problem report submission endpoint
 
@@ -84,6 +76,10 @@ components:
           type: string
           nullable: true
           example: local
+        timezone:
+          type: string
+          nullable: true
+          example: Asia/Kolkata
 
     Authenticate:
       type: object
@@ -233,9 +229,6 @@ components:
         reminderTime:
           type: string
           example: "08:30"
-        timezone:
-          type: string
-          example: Asia/Kolkata
         reminderEnabled:
           type: boolean
           example: true
@@ -572,7 +565,7 @@ paths:
         1 = registration OTP
         2 = login OTP
       tags:
-        - Auth OTP
+        - Auth
       requestBody:
         required: true
         content:
@@ -625,7 +618,7 @@ paths:
         1 = registration OTP
         2 = login OTP
       tags:
-        - Auth OTP
+        - Auth
       requestBody:
         required: true
         content:
@@ -736,7 +729,7 @@ paths:
       summary: Logout user
       description: Revokes current access token and optionally revokes provided refresh token.
       tags:
-        - Auth
+        - User
       security:
         - bearerAuth: []
       requestBody:
@@ -766,10 +759,11 @@ paths:
         Updates authenticated user profile fields.
         - `firstName` is optional.
         - `lastName` is optional.
+        - `timezone` is optional and should be IANA timezone string from device (e.g. `Asia/Kolkata`).
         - `email` is optional and triggers OTP verification flow.
         - If `email` is provided, verify via `/auth/verify-email-update`.
       tags:
-        - Auth Profile
+        - User
       security:
         - bearerAuth: []
       requestBody:
@@ -796,6 +790,12 @@ paths:
                   format: email
                   example: newemail@example.com
                   description: New email to be verified by OTP.
+                timezone:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: Asia/Kolkata
+                  description: Device timezone used as source of truth for scheduler and notification timing.
       responses:
         "200":
           description: Profile updated; if `email` was provided, email-update OTP is sent.
@@ -819,7 +819,7 @@ paths:
       summary: Verify email update OTP
       description: Verifies OTP sent to `newEmail` from `/auth/update-profile` and updates account email.
       tags:
-        - Auth Email Update
+        - Auth
       security:
         - bearerAuth: []
       requestBody:
@@ -857,7 +857,7 @@ paths:
       summary: Resend email update OTP
       description: Resends OTP for latest pending email update request.
       tags:
-        - Auth Email Update
+        - Auth
       security:
         - bearerAuth: []
       responses:
@@ -881,7 +881,7 @@ paths:
       summary: Soft delete account
       description: Marks account as deleted and revokes active access/refresh tokens.
       tags:
-        - Auth Account
+        - Auth
       security:
         - bearerAuth: []
       responses:
@@ -901,7 +901,7 @@ paths:
       summary: Start social OAuth login
       description: Initiates OAuth login for the selected provider and redirects the client to the provider consent screen.
       tags:
-        - Auth OAuth
+        - Auth
       parameters:
         - in: path
           name: provider
@@ -921,7 +921,7 @@ paths:
       summary: Social OAuth callback
       description: Provider callback endpoint used after OAuth consent. On success, returns authenticated user data and JWT auth tokens.
       tags:
-        - Auth OAuth
+        - Auth
       parameters:
         - in: path
           name: provider
@@ -949,7 +949,7 @@ paths:
       summary: Get authenticated user
       description: Returns profile details of the currently authenticated user.
       tags:
-        - Auth
+        - User
       security:
         - bearerAuth: []
       responses:
@@ -1070,7 +1070,6 @@ paths:
                 - dream
                 - godWhisperIds
                 - reminderTime
-                - timezone
               properties:
                 username:
                   type: string
@@ -1092,9 +1091,6 @@ paths:
                   type: string
                   pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$"
                   example: "07:30"
-                timezone:
-                  type: string
-                  example: Asia/Kolkata
       responses:
         "201":
           description: Goal saved successfully
@@ -1214,6 +1210,41 @@ paths:
         "422":
           $ref: "#/components/responses/ValidationError"
 
+    delete:
+      summary: Remove device token
+      description: Marks the provided FCM token as inactive for authenticated user.
+      tags:
+        - Device Tokens
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fcmToken
+              properties:
+                fcmToken:
+                  type: string
+                  example: fcm-token-value
+      responses:
+        "200":
+          description: Device token removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "412":
+          $ref: "#/components/responses/PreconditionFailedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
   /help-support:
     post:
       summary: Submit help and support request
@@ -1246,41 +1277,6 @@ paths:
                 $ref: "#/components/schemas/HelpSupportRequestResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "403":
-          $ref: "#/components/responses/ForbiddenError"
-        "412":
-          $ref: "#/components/responses/PreconditionFailedError"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
-    delete:
-      summary: Remove device token
-      description: Marks the provided FCM token as inactive for authenticated user.
-      tags:
-        - Device Tokens
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - fcmToken
-              properties:
-                fcmToken:
-                  type: string
-                  example: fcm-token-value
-      responses:
-        "200":
-          description: Device token removed successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":

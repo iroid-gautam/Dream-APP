@@ -1,7 +1,9 @@
 import Goal from "../model/goal";
+import User from "../model/user";
 import DeviceTokenService from "../src/deviceTokens/deviceTokenService";
 import PushNotificationService from "../src/common/services/pushNotification.service";
 import CommonService from "../src/common/services/common.service";
+import { resolveSafeTimezone } from "../src/common/helper";
 import logger from "../src/common/logger";
 
 const reminderLogger = logger.withLabel("REMINDER_JOB");
@@ -37,7 +39,8 @@ const shouldSendReminderNow = (goal) => {
     return false;
   }
 
-  const localNow = getLocalDateTimeParts(goal.timezone);
+  const timezone = resolveSafeTimezone(goal.user?.timezone, "UTC");
+  const localNow = getLocalDateTimeParts(timezone);
 
   if (goal.reminderTime !== localNow.time) {
     return false;
@@ -47,10 +50,10 @@ const shouldSendReminderNow = (goal) => {
     return true;
   }
 
-  const lastSentLocal = getLocalDateTimeParts(goal.timezone);
+  const lastSentLocal = getLocalDateTimeParts(timezone);
   const lastSentAt = new Date(goal.lastReminderSentAt);
   const lastSentParts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: goal.timezone,
+    timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -85,11 +88,21 @@ const runReminderDispatch = async () => {
       "userId",
       "username",
       "dream",
-      "timezone",
       "reminderTime",
       "lastReminderSentAt",
       "isActive",
       "reminderEnabled",
+    ],
+    include: [
+      {
+        model: User,
+        as: "user",
+        required: true,
+        attributes: ["id", "timezone", "isDeleted"],
+        where: {
+          isDeleted: false,
+        },
+      },
     ],
   });
 

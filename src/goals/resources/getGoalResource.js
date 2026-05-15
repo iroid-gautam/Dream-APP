@@ -14,7 +14,6 @@ export default class GetGoalResource {
         }))
       : [];
     this.reminderTime = data.reminderTime;
-    this.timezone = data.timezone;
     this.isActive = data.isActive;
     this.activatedAt = data.activatedAt;
     this.deactivatedAt = data.deactivatedAt;

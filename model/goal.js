@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "./connection";
+import User from "./user";
 
 const Goal = sequelize.define(
   "goal",
@@ -68,13 +69,6 @@ const Goal = sequelize.define(
       allowNull: false,
       field: "reminder_time",
     },
-    timezone: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      set(value) {
-        this.setDataValue("timezone", value ? value.trim() : null);
-      },
-    },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -118,5 +112,10 @@ const Goal = sequelize.define(
     ],
   }
 );
+
+Goal.belongsTo(User, {
+  as: "user",
+  foreignKey: "userId",
+});
 
 export default Goal;

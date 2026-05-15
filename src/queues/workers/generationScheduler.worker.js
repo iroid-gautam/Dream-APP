@@ -1,7 +1,9 @@
 import { Worker } from "bullmq";
 import Goal from "../../../model/goal";
+import User from "../../../model/user";
 import sequelize from "../../../model/connection";
 import logger from "../../common/logger";
+import { resolveSafeTimezone } from "../../common/helper";
 import CommonService from "../../common/services/common.service";
 import redisConnection from "../connections/redis.connection";
 import QUEUE_NAMES from "../configs/queue-names";
@@ -45,7 +47,7 @@ const getQueueTargetTime = (date = new Date()) => {
 };
 
 const buildGenerationDateIso = (timeZone, now = new Date()) => {
-  const local = getLocalTimeParts(timeZone, now);
+  const local = getLocalTimeParts(timeZone || "UTC", now);
   return new Date(`${local.date}T00:00:00.000Z`).toISOString();
 };
 
@@ -63,7 +65,8 @@ const ensureDailyGenerationAndQueue = async (goal) => {
     return;
   }
 
-  const generationDate = buildGenerationDateIso(goal.timezone);
+  const timezone = resolveSafeTimezone(goal.user?.timezone, "UTC");
+  const generationDate = buildGenerationDateIso(timezone);
   const existing = await CommonService.findOne(DailyGoalGeneration, {
     goalId: goal.id,
     generationDate,
@@ -103,11 +106,23 @@ const processSchedulerJob = async () => {
       isActive: true,
       reminderEnabled: true,
     },
-    attributes: ["id", "userId", "timezone", "reminderTime"],
+    attributes: ["id", "userId", "reminderTime"],
+    include: [
+      {
+        model: User,
+        as: "user",
+        required: true,
+        attributes: ["id", "timezone", "isDeleted"],
+        where: {
+          isDeleted: false,
+        },
+      },
+    ],
   });
 
   const eligibleGoals = goals.filter((goal) => {
-    const targetLocal = getLocalTimeParts(goal.timezone, target);
+    const timezone = resolveSafeTimezone(goal.user?.timezone, "UTC");
+    const targetLocal = getLocalTimeParts(timezone, target);
     return goal.reminderTime === targetLocal.time;
   });
 

@@ -12,3 +12,17 @@ export const randomStringGenerator = (givenLength = 70) => {
 
   return randomStr;
 };
+
+export const resolveSafeTimezone = (timezone = "", fallback = "UTC") => {
+  const value = `${timezone || ""}`.trim();
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: value });
+    return value;
+  } catch (error) {
+    return fallback;
+  }
+};

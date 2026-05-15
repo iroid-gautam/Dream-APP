@@ -330,6 +330,10 @@ class AuthService {
       user.lastName = body.lastName;
     }
 
+    if (body.timezone) {
+      user.timezone = body.timezone;
+    }
+
     const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
     if (fullName) {
       user.name = fullName;

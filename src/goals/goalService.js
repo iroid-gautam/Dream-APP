@@ -38,7 +38,8 @@ class GoalService {
   }
 
   static buildGenerationDateIso(timeZone, now = new Date()) {
-    const local = this.getLocalTimeParts(timeZone, now);
+    const safeTimeZone = timeZone || "UTC";
+    const local = this.getLocalTimeParts(safeTimeZone, now);
     return new Date(`${local.date}T00:00:00.000Z`).toISOString();
   }
 
@@ -46,13 +47,13 @@ class GoalService {
     return sequelize.models.dailyGoalGeneration || null;
   }
 
-  static async ensureDailyGenerationAndQueue({ goal }) {
+  static async ensureDailyGenerationAndQueue({ goal, timezone }) {
     const DailyGoalGeneration = this.resolveDailyGenerationModel();
     if (!DailyGoalGeneration) {
       return null;
     }
 
-    const generationDate = this.buildGenerationDateIso(goal.timezone);
+    const generationDate = this.buildGenerationDateIso(timezone);
     let generation = await CommonService.findOne(DailyGoalGeneration, {
       goalId: goal.id,
       generationDate,
@@ -175,7 +176,7 @@ class GoalService {
   }
 
   static async createGoal({ authUser, body }) {
-    return sequelize.transaction(async (transaction) => {
+    const result = await sequelize.transaction(async (transaction) => {
       const user = await CommonService.findByPk(User, authUser.id, {
         transaction,
         lock: transaction.LOCK.UPDATE,
@@ -222,7 +223,6 @@ class GoalService {
           dream: body.dream,
           godWhisperIds: selectedGodWhispers.map((whisper) => whisper.id),
           reminderTime: body.reminderTime,
-          timezone: body.timezone,
           isActive: true,
           activatedAt: new Date(),
           deactivatedAt: null,
@@ -232,10 +232,19 @@ class GoalService {
         { transaction }
       );
 
-      await this.ensureDailyGenerationAndQueue({ goal });
-
-      return this.transformGoal(goal, selectedGodWhispers);
+      return {
+        goal,
+        selectedGodWhispers,
+        userTimezone: user.timezone || "UTC",
+      };
     });
+
+    await this.ensureDailyGenerationAndQueue({
+      goal: result.goal,
+      timezone: result.userTimezone,
+    });
+
+    return this.transformGoal(result.goal, result.selectedGodWhispers);
   }
 
   static async getGoalSummary({ authUser, query }) {
