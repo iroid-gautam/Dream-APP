@@ -77,4 +77,18 @@ module.exports = {
     ],
     BLOCKED_OUTPUT_PATTERNS: ["```", "# ", "**", "__", "<script"],
   },
+
+  AI_AUDIO_GENERATION: {
+    TEMP_DIRECTORY: "storage/temp/audio",
+    EXPECTED_MIME_TYPE: "audio/mpeg",
+    EXPECTED_FORMAT: "mp3",
+    MIN_AUDIO_BYTES: 512,
+    MAX_TEXT_LENGTH_FOR_TTS: 2000,
+    SINGLE_VOICE_ID:
+      process.env.ELEVENLABS_DEFAULT_VOICE_ID || "EXAVITQu4vr4xnSDxMaL",
+    DEFAULT_MODEL_ID: process.env.ELEVENLABS_MODEL_ID || "eleven_multilingual_v2",
+    REMOVE_SYMBOLS_REGEX: /[<>{}\[\]]/g,
+    REMOVE_MARKDOWN_REGEX: /(\*\*|__|#|`)/g,
+    REPEATED_PUNCTUATION_REGEX: /([!?.,])\1{1,}/g,
+  },
 };

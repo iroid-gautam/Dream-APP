@@ -19,3 +19,13 @@ export const QUEUE_CONCURRENCY = {
   AUDIO_GENERATION: getQueueNumber("QUEUE_CONCURRENCY_AUDIO", 3),
   NOTIFICATION_DELIVERY: getQueueNumber("QUEUE_CONCURRENCY_NOTIFICATION", 20),
 };
+
+export const AUDIO_JOB_OPTIONS = {
+  attempts: getQueueNumber("QUEUE_AUDIO_ATTEMPTS", 5),
+  backoff: {
+    type: "exponential",
+    delay: getQueueNumber("QUEUE_AUDIO_BACKOFF_DELAY_MS", 10000),
+  },
+  removeOnComplete: true,
+  removeOnFail: false,
+};

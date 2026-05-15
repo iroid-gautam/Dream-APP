@@ -1,7 +1,14 @@
 import { Worker } from "bullmq";
+import fs from "fs";
+import path from "path";
 import sequelize from "../../../model/connection";
 import logger from "../../common/logger";
+import constants from "../../common/constants/constant";
 import CommonService from "../../common/services/common.service";
+import CloudinaryAudioService from "../../services/storage/cloudinaryAudio.service";
+import AudioValidatorService from "../../services/tts/audioValidator.service";
+import ElevenLabsService from "../../services/tts/elevenlabs.service";
+import TTSSanitizerService from "../../services/tts/ttsSanitizer.service";
 import redisConnection from "../connections/redis.connection";
 import QUEUE_NAMES from "../configs/queue-names";
 import { QUEUE_CONCURRENCY } from "../configs/queue-options";
@@ -13,22 +20,23 @@ const resolveDailyGenerationModel = () => {
   return sequelize.models.dailyGoalGeneration || null;
 };
 
-const generateAudioFromScript = async ({ scriptText }) => {
-  return {
-    audioBufferBase64: Buffer.from(scriptText || "motivation-audio").toString(
-      "base64"
-    ),
-    provider: "mock-elevenlabs",
-    voiceId: process.env.DEFAULT_TTS_VOICE_ID || "default-voice",
-    duration: 30,
-  };
+const ensureTempDirectory = () => {
+  const tempDirectory = constants.AI_AUDIO_GENERATION.TEMP_DIRECTORY;
+  if (!fs.existsSync(tempDirectory)) {
+    fs.mkdirSync(tempDirectory, { recursive: true });
+  }
+  return tempDirectory;
 };
 
-const uploadAudioToStorage = async ({ generationId }) => {
-  return {
-    cloudinaryPublicId: `mock/audio/${generationId}`,
-    audioUrl: `https://example.com/mock-audio/${generationId}.mp3`,
-  };
+const getTempAudioPath = ({ generationId }) => {
+  const tempDirectory = ensureTempDirectory();
+  return path.join(tempDirectory, `${generationId}.mp3`);
+};
+
+const removeTempFileIfExists = ({ filePath }) => {
+  if (filePath && fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
 };
 
 const processAudioJob = async (job) => {
@@ -60,26 +68,68 @@ const processAudioJob = async (job) => {
     throw new Error("Script text missing for audio generation.");
   }
 
+  const tempAudioPath = getTempAudioPath({ generationId });
+
   generation.generationStatus = "audio_processing";
   await generation.save();
 
-  const audioResult = await generateAudioFromScript({
-    scriptText: generation.script.text,
+  let audioMeta = generation.audio || {};
+  const hasLocalTempFile = fs.existsSync(tempAudioPath);
+
+  if (!hasLocalTempFile) {
+    const sanitizedScript = TTSSanitizerService.sanitize(generation.script.text);
+    if (!sanitizedScript) {
+      throw new Error("Script text became empty after TTS sanitization.");
+    }
+
+    const ttsResult = await ElevenLabsService.generateSpeech({
+      text: sanitizedScript,
+    });
+
+    if (!ttsResult.audioBuffer || !ttsResult.audioBuffer.length) {
+      throw new Error("ElevenLabs returned empty audio buffer.");
+    }
+
+    fs.writeFileSync(tempAudioPath, ttsResult.audioBuffer);
+
+    audioMeta = {
+      ...audioMeta,
+      provider: ttsResult.provider,
+      voiceId: ttsResult.voiceId,
+      modelId: ttsResult.modelId,
+      tempFilePath: tempAudioPath,
+    };
+    generation.audio = audioMeta;
+    await generation.save();
+  }
+
+  const validatedAudio = AudioValidatorService.validateTempAudioFile({
+    filePath: tempAudioPath,
   });
-  const uploadResult = await uploadAudioToStorage({ generationId });
+
+  const uploadResult = await CloudinaryAudioService.uploadAudioFile({
+    filePath: tempAudioPath,
+    userId,
+    goalId,
+    generationDate: generation.generationDate,
+  });
 
   generation.audio = {
-    provider: audioResult.provider,
-    voiceId: audioResult.voiceId,
+    provider: audioMeta.provider || "elevenlabs",
+    voiceId: audioMeta.voiceId || constants.AI_AUDIO_GENERATION.SINGLE_VOICE_ID,
+    modelId: audioMeta.modelId || constants.AI_AUDIO_GENERATION.DEFAULT_MODEL_ID,
     cloudinaryPublicId: uploadResult.cloudinaryPublicId,
     audioUrl: uploadResult.audioUrl,
-    duration: audioResult.duration,
+    duration: uploadResult.duration,
+    format: uploadResult.format || validatedAudio.format,
+    bytes: uploadResult.bytes || validatedAudio.bytes,
   };
   generation.generationStatus = "completed";
   generation.errorLogs = Array.isArray(generation.errorLogs)
     ? generation.errorLogs
     : [];
   await generation.save();
+  removeTempFileIfExists({ filePath: tempAudioPath });
 
   await addNotificationDeliveryJob({ generationId, goalId, userId });
 
