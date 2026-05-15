@@ -9,6 +9,8 @@ import "./model/otp";
 import "./model/accessToken";
 import "./model/refreshToken";
 import "./model/godWhisper";
+import "./model/goal";
+import "./model/deviceToken";
 import errorHandler from "./src/common/middlewares/error-handler.middleware";
 import swagger from "./src/common/config/swagger";
 import logger from "./src/common/logger";
@@ -18,6 +20,11 @@ import "./src/common/config/passport-strategies";
 import { initializeFirebase } from "./src/common/config/firebase";
 import "./cronJob";
 import { runSeeders } from "./seeder";
+import registerQueueEvents from "./src/queues/events/queue-events";
+import "./src/queues/workers/generationScheduler.worker";
+import "./src/queues/workers/scriptGeneration.worker";
+import "./src/queues/workers/audioGeneration.worker";
+import "./src/queues/workers/notificationDelivery.worker";
 
 const appLogger = logger.withLabel("APP");
 
@@ -52,6 +59,7 @@ const startServer = async () => {
     await syncDatabase();
     await runSeeders();
     initializeFirebase();
+    registerQueueEvents();
 
     app.listen(process.env.PORT, () => {
       appLogger.info("Server started successfully.", {
