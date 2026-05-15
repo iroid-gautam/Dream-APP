@@ -11,6 +11,7 @@ import "./model/refreshToken";
 import "./model/godWhisper";
 import "./model/goal";
 import "./model/deviceToken";
+import "./model/dailyGoalGeneration";
 import errorHandler from "./src/common/middlewares/error-handler.middleware";
 import swagger from "./src/common/config/swagger";
 import logger from "./src/common/logger";

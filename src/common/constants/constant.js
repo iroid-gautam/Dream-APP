@@ -52,4 +52,29 @@ module.exports = {
     GOOGLE: "google",
     FACEBOOK: "facebook",
   },
+
+  AI_SCRIPT_GENERATION: {
+    MAX_GOAL_NAME_LENGTH: 100,
+    MAX_DREAM_LENGTH: 1000,
+    MAX_WHISPERS: 10,
+    MAX_WHISPER_LENGTH: 50,
+    MAX_SCRIPT_WORDS: 120,
+    MAX_SCRIPT_CHARACTERS: 800,
+    MAX_PROMPT_CHARACTERS: 4000,
+    TONE_ROTATION: [
+      "emotional",
+      "energetic",
+      "spiritual",
+      "disciplined",
+      "inspirational",
+    ],
+    BLOCKED_INPUT_PATTERNS: [
+      "ignore previous instructions",
+      "act as system",
+      "you are chatgpt",
+      "developer mode",
+      "jailbreak",
+    ],
+    BLOCKED_OUTPUT_PATTERNS: ["```", "# ", "**", "__", "<script"],
+  },
 };
