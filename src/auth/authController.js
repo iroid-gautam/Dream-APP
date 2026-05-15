@@ -61,30 +61,13 @@ class AuthController {
     return res.send({ message: "Logged out successfully." });
   }
 
-  static async forgotPassword(req, res) {
-    await AuthService.forgotPassword(req.body.email);
-    return res.send({
-      message: "OTP sent to your email. Please use it to reset password.",
-    });
-  }
-
-  static async resetPassword(req, res) {
-    await AuthService.resetPassword(req.body);
-    return res.send({ message: "Password reset successfully." });
-  }
-
-  static async changePassword(req, res) {
-    await AuthService.changePassword(req.user, req.body);
-    return res.send({ message: "Password changed successfully." });
-  }
-
   static async updateProfile(req, res) {
     const result = await AuthService.updateProfile({
       authUser: req.user,
       body: req.body,
     });
 
-    const isEmailUpdateRequested = Boolean(req.body?.newEmail);
+    const isEmailUpdateRequested = Boolean(req.body?.email);
 
     return res.send({
       message: isEmailUpdateRequested

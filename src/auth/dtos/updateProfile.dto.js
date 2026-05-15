@@ -2,7 +2,8 @@ import Joi from "joi";
 
 export default Joi.object()
   .keys({
-    name: Joi.string().trim().min(2).max(120).optional(),
-    newEmail: Joi.string().trim().email().optional(),
+    firstName: Joi.string().trim().min(2).max(60).optional(),
+    lastName: Joi.string().trim().min(2).max(60).optional(),
+    email: Joi.string().trim().email().optional(),
   })
-  .or("name", "newEmail");
+  .or("firstName", "lastName", "email");

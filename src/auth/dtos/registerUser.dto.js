@@ -1,9 +1,8 @@
 import Joi from "joi";
 
 export default Joi.object().keys({
-  name: Joi.string().required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  confirmPassword: Joi.any().equal(Joi.ref("password")).required(),
   termCondition: Joi.number().valid(0, 1).optional(),
 });

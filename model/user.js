@@ -1,7 +1,6 @@
-import bcrypt from "bcryptjs";
 import { DataTypes } from "sequelize";
 import sequelize from "./connection";
-import { AUTH_PROVIDER, BCRYPT } from "../src/common/constants/constant";
+import { AUTH_PROVIDER } from "../src/common/constants/constant";
 
 const User = sequelize.define(
   "user",
@@ -15,6 +14,16 @@ const User = sequelize.define(
       type: DataTypes.STRING(120),
       allowNull: true,
     },
+    firstName: {
+      type: DataTypes.STRING(60),
+      allowNull: true,
+      field: "first_name",
+    },
+    lastName: {
+      type: DataTypes.STRING(60),
+      allowNull: true,
+      field: "last_name",
+    },
     email: {
       type: DataTypes.STRING(160),
       allowNull: true,
@@ -22,10 +31,6 @@ const User = sequelize.define(
       set(value) {
         this.setDataValue("email", value ? value.trim().toLowerCase() : null);
       },
-    },
-    password: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
     },
     profileImage: {
       type: DataTypes.STRING(255),
@@ -44,12 +49,6 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: false,
       field: "is_verified",
-    },
-    isForgotPasswordVerified: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      field: "is_forgot_password_verified",
     },
     resetToken: {
       type: DataTypes.STRING(255),
@@ -92,27 +91,7 @@ const User = sequelize.define(
   },
   {
     tableName: "users",
-    hooks: {
-      beforeCreate: async (user) => {
-        if (user.password) {
-          user.password = await bcrypt.hash(user.password, BCRYPT.SALT_ROUND);
-        }
-      },
-      beforeUpdate: async (user) => {
-        if (user.changed("password") && user.password) {
-          user.password = await bcrypt.hash(user.password, BCRYPT.SALT_ROUND);
-        }
-      },
-    },
   }
 );
-
-User.prototype.isPasswordMatch = async function (password) {
-  if (!this.password) {
-    return false;
-  }
-
-  return bcrypt.compare(password, this.password);
-};
 
 export default User;

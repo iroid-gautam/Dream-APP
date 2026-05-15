@@ -18,7 +18,6 @@ passport.use(
       }
 
       const sanitizedUser = user.toJSON();
-      delete sanitizedUser.password;
 
       return done(null, { ...sanitizedUser, jti: jwtPayload.jti });
     } catch (error) {

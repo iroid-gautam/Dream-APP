@@ -51,14 +51,16 @@ class AuthService {
 
   static async register(data) {
     const email = data.email.toLowerCase();
+    const fullName = `${data.firstName} ${data.lastName}`.trim();
     let user = await CommonService.findOne(User, { email });
 
     if (user?.isDeleted) {
-      user.name = data.name || user.name;
-      user.password = data.password;
+      user.firstName = data.firstName || user.firstName;
+      user.lastName = data.lastName || user.lastName;
+      user.name = fullName || user.name;
+      user.termCondition = data.termCondition ?? user.termCondition;
       user.providerType = AUTH_PROVIDER.LOCAL;
       user.providerId = null;
-      user.isForgotPasswordVerified = false;
       user.isDeleted = false;
       user.deletedAt = null;
       user.isVerified = false;
@@ -79,8 +81,11 @@ class AuthService {
     }
 
     user = await CommonService.createOne(User, {
-      ...data,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      name: fullName,
       email,
+      termCondition: data.termCondition ?? 0,
       providerType: AUTH_PROVIDER.LOCAL,
       providerId: null,
       lastLoginProvider: AUTH_PROVIDER.LOCAL,
@@ -134,7 +139,6 @@ class AuthService {
 
     if (type === OTPTYPE.REGISTRATION_OTP) {
       user.isVerified = true;
-      user.isForgotPasswordVerified = false;
       await user.save();
 
       const authenticate = await this.issueAuthenticationPayload(
@@ -160,10 +164,6 @@ class AuthService {
 
       return this.issueAuthenticationPayload(user, AUTH_PROVIDER.LOCAL);
     }
-
-    user.isForgotPasswordVerified = true;
-    await user.save();
-    return "OTP verified successfully.";
   }
 
   static async resendOtp(data) {
@@ -184,12 +184,6 @@ class AuthService {
 
     if (user.isDeleted) {
       throw new ForbiddenException("This account has been deleted.");
-    }
-
-    if (type === OTPTYPE.FORGOT_PASSWORD && user.providerType !== AUTH_PROVIDER.LOCAL) {
-      throw new ForbiddenException(
-        "Forgot password is only available for local sign in users."
-      );
     }
 
     if (type === OTPTYPE.LOGIN_OTP && user.providerType !== AUTH_PROVIDER.LOCAL) {
@@ -317,100 +311,6 @@ class AuthService {
     }
   }
 
-  static async forgotPassword(email) {
-    const user = await CommonService.findOne(User, {
-      email: email.toLowerCase(),
-    });
-
-    if (!user) {
-      throw new PreconditionFailedException("Email not exist");
-    }
-
-    if (user.isDeleted) {
-      throw new ForbiddenException("This account has been deleted.");
-    }
-
-    if (user.providerType !== AUTH_PROVIDER.LOCAL) {
-      throw new ForbiddenException(
-        "Forgot password is only available for local sign in users."
-      );
-    }
-
-    user.isForgotPasswordVerified = false;
-    await user.save();
-    await this.generateAndSendOtp(user, OTPTYPE.FORGOT_PASSWORD);
-    return true;
-  }
-
-  static async resetPassword(data) {
-    const email = data.email.toLowerCase();
-    const user = await CommonService.findOne(User, { email });
-
-    if (!user) {
-      throw new PreconditionFailedException("Email not exist");
-    }
-
-    if (user.isDeleted) {
-      throw new ForbiddenException("This account has been deleted.");
-    }
-
-    if (user.providerType !== AUTH_PROVIDER.LOCAL) {
-      throw new ForbiddenException(
-        "Password reset is only available for local sign in users."
-      );
-    }
-
-    if (!user.isForgotPasswordVerified) {
-      throw new ForbiddenException(
-        "Please verify forgot password OTP before resetting password."
-      );
-    }
-
-    user.password = data.password;
-    user.isForgotPasswordVerified = false;
-    user.lastLoginProvider = AUTH_PROVIDER.LOCAL;
-    await user.save();
-
-    await CommonService.update(
-      Otp,
-      { isConsumed: true },
-      {
-        email,
-        type: OTPTYPE.FORGOT_PASSWORD,
-        isConsumed: false,
-      }
-    );
-
-    return true;
-  }
-
-  static async changePassword(authUser, data) {
-    const user = await CommonService.findByPk(User, authUser.id);
-
-    if (!user) {
-      throw new PreconditionFailedException("User not exist with this id.");
-    }
-
-    if (user.isDeleted) {
-      throw new ForbiddenException("This account has been deleted.");
-    }
-
-    if (user.providerType !== AUTH_PROVIDER.LOCAL) {
-      throw new ForbiddenException(
-        "Password change is only available for local sign in users."
-      );
-    }
-
-    const checkPassword = await user.isPasswordMatch(data.oldPassword);
-    if (!checkPassword) {
-      throw new BadRequestException("Old password is incorrect.");
-    }
-
-    user.password = data.password;
-    await user.save();
-    return true;
-  }
-
   static async updateProfile({ authUser, body }) {
     const user = await CommonService.findByPk(User, authUser.id);
 
@@ -422,16 +322,25 @@ class AuthService {
       throw new ForbiddenException("This account has been deleted.");
     }
 
-    if (body.name) {
-      user.name = body.name;
+    if (body.firstName) {
+      user.firstName = body.firstName;
     }
 
-    if (body.newEmail) {
+    if (body.lastName) {
+      user.lastName = body.lastName;
+    }
+
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    if (fullName) {
+      user.name = fullName;
+    }
+
+    if (body.email) {
       if (user.providerType !== AUTH_PROVIDER.LOCAL) {
         throw new ForbiddenException("Profile update is not allowed for this request.");
       }
 
-      const newEmail = body.newEmail.toLowerCase();
+      const newEmail = body.email.toLowerCase();
 
       if (newEmail === user.email) {
         throw new BadRequestException(

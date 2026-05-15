@@ -1,6 +1,8 @@
 export default class GetUserResource {
   constructor(data) {
     this.id = data.id;
+    this.firstName = data.firstName || null;
+    this.lastName = data.lastName || null;
     this.name = data.name;
     this.email = data.email;
     this.isVerified = data.isVerified;

@@ -17,7 +17,6 @@ info:
     OTP numeric type mapping used in auth APIs:
     - `1` = registration OTP
     - `2` = login OTP
-    - `3` = forgot password OTP
 
     termCondition mapping used in registration API:
     - `0` = accepted
@@ -32,9 +31,9 @@ tags:
   - name: Auth
     description: Core authentication endpoints
   - name: Auth OTP
-    description: OTP verification and recovery flows
+    description: OTP verification flows
   - name: Auth Profile
-    description: Authenticated profile and password operations
+    description: Authenticated profile operations
   - name: Auth Email Update
     description: Authenticated email update flows
   - name: Auth Account
@@ -484,26 +483,20 @@ paths:
             schema:
               type: object
               required:
-                - name
+                - firstName
+                - lastName
                 - email
-                - password
-                - confirmPassword
               properties:
-                name:
+                firstName:
                   type: string
                   example: Gautam
+                lastName:
+                  type: string
+                  example: Poriya
                 email:
                   type: string
                   format: email
                   example: gautam@example.com
-                password:
-                  type: string
-                  minLength: 6
-                  example: password@123
-                confirmPassword:
-                  type: string
-                  minLength: 6
-                  example: password@123
                 termCondition:
                   type: number
                   enum:
@@ -533,7 +526,6 @@ paths:
         Type mapping:
         1 = registration OTP
         2 = login OTP
-        3 = forgot password OTP
       tags:
         - Auth OTP
       requestBody:
@@ -561,9 +553,8 @@ paths:
                   enum:
                     - 1
                     - 2
-                    - 3
                   example: 2
-                  description: 1 = registration OTP, 2 = login OTP, 3 = forgot password OTP
+                  description: 1 = registration OTP, 2 = login OTP
       responses:
         "200":
           description: OTP verified
@@ -588,7 +579,6 @@ paths:
         Type mapping:
         1 = registration OTP
         2 = login OTP
-        3 = forgot password OTP
       tags:
         - Auth OTP
       requestBody:
@@ -610,9 +600,8 @@ paths:
                   enum:
                     - 1
                     - 2
-                    - 3
                   example: 2
-                  description: 1 = registration OTP, 2 = login OTP, 3 = forgot password OTP
+                  description: 1 = registration OTP, 2 = login OTP
       responses:
         "200":
           description: OTP resent
@@ -725,136 +714,15 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
 
-  /auth/forgot-password:
-    post:
-      summary: Request forgot password OTP
-      description: Sends forgot-password OTP for local sign-in users.
-      tags:
-        - Auth OTP
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: gautam@example.com
-      responses:
-        "200":
-          description: Forgot password OTP sent
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "403":
-          $ref: "#/components/responses/ForbiddenError"
-        "412":
-          $ref: "#/components/responses/PreconditionFailedError"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
-  /auth/reset-password:
-    post:
-      summary: Reset password
-      description: Resets password after successful forgot-password OTP verification.
-      tags:
-        - Auth OTP
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-                - confirmPassword
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: gautam@example.com
-                password:
-                  type: string
-                  minLength: 6
-                  example: password@123
-                confirmPassword:
-                  type: string
-                  minLength: 6
-                  example: password@123
-      responses:
-        "200":
-          description: Password reset successful
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "403":
-          $ref: "#/components/responses/ForbiddenError"
-        "412":
-          $ref: "#/components/responses/PreconditionFailedError"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
-  /auth/change-password:
-    post:
-      summary: Change password
-      description: Changes authenticated local user's password after validating old password.
-      tags:
-        - Auth Profile
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - oldPassword
-                - password
-                - confirmPassword
-              properties:
-                oldPassword:
-                  type: string
-                  example: oldPassword@123
-                password:
-                  type: string
-                  minLength: 6
-                  example: newPassword@123
-                confirmPassword:
-                  type: string
-                  minLength: 6
-                  example: newPassword@123
-      responses:
-        "200":
-          description: Password changed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
-        "403":
-          $ref: "#/components/responses/ForbiddenError"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
   /auth/update-profile:
     patch:
       summary: Update user profile
       description: |
         Updates authenticated user profile fields.
-        - `name` is optional.
-        - `newEmail` is optional and triggers OTP verification flow.
-        - If `newEmail` is provided, verify via `/auth/verify-email-update`.
+        - `firstName` is optional.
+        - `lastName` is optional.
+        - `email` is optional and triggers OTP verification flow.
+        - If `email` is provided, verify via `/auth/verify-email-update`.
       tags:
         - Auth Profile
       security:
@@ -866,20 +734,26 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                firstName:
                   type: string
                   minLength: 2
-                  maxLength: 120
-                  example: Gautam Sharma
-                  description: Display name of the user.
-                newEmail:
+                  maxLength: 60
+                  example: Gautam
+                  description: First name of the user.
+                lastName:
+                  type: string
+                  minLength: 2
+                  maxLength: 60
+                  example: Sharma
+                  description: Last name of the user.
+                email:
                   type: string
                   format: email
                   example: newemail@example.com
                   description: New email to be verified by OTP.
       responses:
         "200":
-          description: Profile updated; if `newEmail` was provided, email-update OTP is sent.
+          description: Profile updated; if `email` was provided, email-update OTP is sent.
           content:
             application/json:
               schema:

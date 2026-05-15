@@ -7,9 +7,6 @@ import registerUserDto from "./dtos/registerUser.dto";
 import loginDto from "./dtos/login.dto";
 import verifyOtpDto from "./dtos/verifyOtp.dto";
 import resendOtpDto from "./dtos/resendOtp.dto";
-import forgotPasswordDto from "./dtos/forgotPassword.dto";
-import resetPasswordDto from "./dtos/resetPassword.dto";
-import changePasswordDto from "./dtos/changePassword.dto";
 import updateProfileDto from "./dtos/updateProfile.dto";
 import verifyEmailUpdateDto from "./dtos/verifyEmailUpdate.dto";
 
@@ -45,25 +42,6 @@ router.post(
 );
 
 router.post("/logout", authenticate, asyncWrapper(AuthController.logOut));
-
-router.post(
-  "/forgot-password",
-  validator.body(forgotPasswordDto),
-  asyncWrapper(AuthController.forgotPassword)
-);
-
-router.post(
-  "/reset-password",
-  validator.body(resetPasswordDto),
-  asyncWrapper(AuthController.resetPassword)
-);
-
-router.post(
-  "/change-password",
-  authenticate,
-  validator.body(changePasswordDto),
-  asyncWrapper(AuthController.changePassword)
-);
 
 router.patch(
   "/update-profile",
