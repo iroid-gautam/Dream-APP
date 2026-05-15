@@ -108,6 +108,9 @@ components:
     MessageResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
         message:
           type: string
           example: success
@@ -115,12 +118,21 @@ components:
     UserResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User profile fetched successfully.
         data:
           $ref: "#/components/schemas/User"
 
     MessageWithUserResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
         message:
           type: string
           example: User name updated successfully.
@@ -130,6 +142,12 @@ components:
     AuthResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Authentication successful.
         data:
           $ref: "#/components/schemas/AuthenticatedUser"
 
@@ -138,6 +156,12 @@ components:
         - $ref: "#/components/schemas/AuthResponse"
         - type: object
           properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: OTP verified successfully.
             data:
               type: string
               example: OTP verified successfully.
@@ -145,6 +169,12 @@ components:
     LoginOrRegisterPendingResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Request processed successfully.
         data:
           type: object
           allOf:
@@ -166,6 +196,9 @@ components:
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: false
         message:
           type: string
           example: Unauthorized
@@ -285,6 +318,9 @@ components:
     GoalResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
         message:
           type: string
           example: Goal saved successfully.
@@ -294,6 +330,12 @@ components:
     GoalHistoryResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Goal history fetched successfully.
         data:
           type: array
           items:
@@ -317,6 +359,12 @@ components:
     GoalSummaryResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Goal summary fetched successfully.
         data:
           type: object
           properties:
@@ -353,6 +401,12 @@ components:
     GodWhisperListResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: God whispers fetched successfully.
         data:
           type: array
           items:
@@ -408,6 +462,9 @@ components:
     DeviceTokenResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
         message:
           type: string
           example: Device token registered successfully.
@@ -463,6 +520,9 @@ components:
     HelpSupportRequestResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: true
         message:
           type: string
           example: Help and support request submitted successfully.
@@ -719,6 +779,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     $ref: "#/components/schemas/Authenticate"
         "401":
@@ -1145,6 +1208,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
                     example: Goal reminder updated successfully.

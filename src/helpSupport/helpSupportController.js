@@ -1,4 +1,5 @@
 import HelpSupportService from "./helpSupportService";
+import CustomHelper from "../common/helpers/customHelper";
 
 class HelpSupportController {
   static async create(req, res) {
@@ -7,10 +8,13 @@ class HelpSupportController {
       body: req.body,
     });
 
-    return res.status(201).send({
-      message: "Help and support request submitted successfully.",
-      data: helpSupportRequest,
-    });
+    return CustomHelper.success(
+      res,
+      "Help and support request submitted successfully.",
+      helpSupportRequest,
+      null,
+      201
+    );
   }
 }
 

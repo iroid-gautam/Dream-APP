@@ -8,13 +8,13 @@ export default (req, res, next) => {
     if (err || !user) {
       return res
         .status(HttpStatus.UNAUTHORIZED_EXCEPTION)
-        .send({ message: "Unauthorized" });
+        .send({ success: false, message: "Unauthorized" });
     }
 
     if (user.isDeleted) {
       return res
         .status(HttpStatus.UNAUTHORIZED_EXCEPTION)
-        .send({ message: "Unauthorized" });
+        .send({ success: false, message: "Unauthorized" });
     }
 
     const exist = await CommonService.findOne(AccessToken, {
@@ -26,7 +26,7 @@ export default (req, res, next) => {
     if (!exist) {
       return res
         .status(HttpStatus.UNAUTHORIZED_EXCEPTION)
-        .send({ message: "Unauthorized" });
+        .send({ success: false, message: "Unauthorized" });
     }
 
     req.user = user;

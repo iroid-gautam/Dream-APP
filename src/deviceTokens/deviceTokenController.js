@@ -1,4 +1,5 @@
 import DeviceTokenService from "./deviceTokenService";
+import CustomHelper from "../common/helpers/customHelper";
 
 class DeviceTokenController {
   static async register(req, res) {
@@ -7,10 +8,11 @@ class DeviceTokenController {
       body: req.body,
     });
 
-    return res.send({
-      message: "Device token registered successfully.",
-      data: deviceToken,
-    });
+    return CustomHelper.success(
+      res,
+      "Device token registered successfully.",
+      deviceToken
+    );
   }
 
   static async remove(req, res) {
@@ -19,9 +21,7 @@ class DeviceTokenController {
       body: req.body,
     });
 
-    return res.send({
-      message: "Device token removed successfully.",
-    });
+    return CustomHelper.success(res, "Device token removed successfully.");
   }
 }
 

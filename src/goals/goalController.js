@@ -1,4 +1,5 @@
 import GoalService from "./goalService";
+import CustomHelper from "../common/helpers/customHelper";
 
 class GoalController {
   static async create(req, res) {
@@ -7,10 +8,7 @@ class GoalController {
       body: req.body,
     });
 
-    return res.status(201).send({
-      message: "Goal saved successfully.",
-      data: goal,
-    });
+    return CustomHelper.success(res, "Goal saved successfully.", goal, null, 201);
   }
 
   static async getSummary(req, res) {
@@ -19,7 +17,12 @@ class GoalController {
       query: req.query,
     });
 
-    return res.send(goalSummary);
+    return CustomHelper.success(
+      res,
+      "Goal summary fetched successfully.",
+      goalSummary.data,
+      goalSummary.meta
+    );
   }
 
   static async toggleReminder(req, res) {
@@ -29,10 +32,7 @@ class GoalController {
       body: req.body,
     });
 
-    return res.send({
-      message: "Goal reminder updated successfully.",
-      data: goal,
-    });
+    return CustomHelper.success(res, "Goal reminder updated successfully.", goal);
   }
 
   static async getGodWhispers(req, res) {
@@ -40,7 +40,12 @@ class GoalController {
       query: req.query,
     });
 
-    return res.send(godWhispers);
+    return CustomHelper.success(
+      res,
+      "God whispers fetched successfully.",
+      godWhispers.data,
+      godWhispers.meta
+    );
   }
 }
 
