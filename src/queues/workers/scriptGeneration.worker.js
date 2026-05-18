@@ -8,6 +8,7 @@ import OpenAIService from "../../services/ai/openai.service";
 import PromptBuilderService from "../../services/ai/promptBuilder.service";
 import ResponseValidatorService from "../../services/ai/responseValidator.service";
 import ToneRotationService from "../../services/ai/toneRotation.service";
+import constants from "../../common/constants/constant";
 import redisConnection from "../connections/redis.connection";
 import QUEUE_NAMES from "../configs/queue-names";
 import { QUEUE_CONCURRENCY } from "../configs/queue-options";
@@ -26,6 +27,20 @@ const resolveGoalModel = () => {
 
 const resolveGodWhisperModel = () => {
   return sequelize.models.godWhisper || null;
+};
+
+const limitWords = (text = "", maxWords = 0) => {
+  const normalized = `${text || ""}`.trim();
+  if (!normalized || maxWords <= 0) {
+    return "";
+  }
+
+  const words = normalized.split(/\s+/);
+  if (words.length <= maxWords) {
+    return normalized;
+  }
+
+  return `${words.slice(0, maxWords).join(" ")}...`;
 };
 
 const fetchGoalScriptInput = async ({ goalId }) => {
@@ -71,15 +86,18 @@ const fetchGoalScriptInput = async ({ goalId }) => {
 
 const buildLocalDevelopmentScript = ({ username, dream, godWhispers, tone }) => {
   const safeUsername = username || "User";
-  const safeDream = dream || "your dream";
+  const safeDream = limitWords(dream || "your dream", 20) || "your dream";
   const whisperLine = Array.isArray(godWhispers) && godWhispers.length
-    ? ` Remember this: ${godWhispers[0]}.`
+    ? ` Remember this: ${limitWords(godWhispers[0], 16)}.`
     : "";
   const safeTone = tone || "motivational";
+  const maxWords = Number(constants.AI_SCRIPT_GENERATION?.MAX_SCRIPT_WORDS || 120);
 
-  return `${safeUsername}, today is your day to move toward ${safeDream}. Stay disciplined, take one clear action right now, and keep your focus strong.${whisperLine} Keep this ${safeTone} energy alive.You are not late.
+  const draft = `${safeUsername}, today is your day to move toward ${safeDream}. Stay disciplined, take one clear action right now, and keep your focus strong.${whisperLine} Keep this ${safeTone} energy alive. You are not late.
 
 `;
+
+  return limitWords(draft, Math.max(1, maxWords - 5));
 };
 
 const processScriptJob = async (job) => {

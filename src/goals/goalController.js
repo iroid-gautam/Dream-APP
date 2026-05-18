@@ -3,12 +3,12 @@ import CustomHelper from "../common/helpers/customHelper";
 
 class GoalController {
   static async create(req, res) {
-    const goal = await GoalService.createGoal({
+    await GoalService.createGoal({
       authUser: req.user,
       body: req.body,
     });
 
-    return CustomHelper.success(res, "Goal saved successfully.", goal, null, 201);
+    return CustomHelper.success(res, "Goal created successfully.", null, null, 201);
   }
 
   static async getSummary(req, res) {
@@ -17,22 +17,66 @@ class GoalController {
       query: req.query,
     });
 
+    const mapGenerationAudio = (generation) => {
+      if (!generation) {
+        return null;
+      }
+
+      return {
+        id: generation.id,
+        generationDate: generation.generationDate,
+        generationStatus: generation.generationStatus,
+        delivered: generation.delivered,
+        deliveredAt: generation.deliveredAt,
+        audioUrl: generation?.audio?.audioUrl || null,
+      };
+    };
+
+    const currentGoal = goalSummary?.data?.currentGoal;
+    const history = Array.isArray(goalSummary?.data?.history)
+      ? goalSummary.data.history
+      : [];
+
+    const data = {
+      currentGoal: currentGoal
+        ? {
+            id: currentGoal.id,
+            dream: currentGoal.dream,
+            reminderTime: currentGoal.reminderTime,
+            reminderEnabled: currentGoal.reminderEnabled,
+            latestGeneration: mapGenerationAudio(currentGoal.latestGeneration),
+          }
+        : null,
+      history: history.map((item) => ({
+        date: item.date,
+        audio: item?.goal?.latestGeneration
+          ? {
+              generationId: item.goal.latestGeneration.id,
+              generationStatus: item.goal.latestGeneration.generationStatus,
+              delivered: item.goal.latestGeneration.delivered,
+              deliveredAt: item.goal.latestGeneration.deliveredAt,
+              audioUrl: item.goal.latestGeneration?.audio?.audioUrl || null,
+            }
+          : null,
+      })),
+    };
+
     return CustomHelper.success(
       res,
       "Goal summary fetched successfully.",
-      goalSummary.data,
+      data,
       goalSummary.meta
     );
   }
 
   static async toggleReminder(req, res) {
-    const goal = await GoalService.toggleReminder({
+    await GoalService.toggleReminder({
       authUser: req.user,
       goalId: req.params.id,
       body: req.body,
     });
 
-    return CustomHelper.success(res, "Goal reminder updated successfully.", goal);
+    return CustomHelper.success(res, "User reminder updated successfully.");
   }
 
   static async getGodWhispers(req, res) {

@@ -139,6 +139,52 @@ components:
         data:
           $ref: "#/components/schemas/User"
 
+    VerifyEmailUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User updated successfully.
+        data:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+              example: gautam@example.com
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User updated successfully.
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
+            firstName:
+              type: string
+              nullable: true
+              example: Gautam
+            lastName:
+              type: string
+              nullable: true
+              example: Poriya
+            email:
+              type: string
+              format: email
+              example: gautam@example.com
+
     AuthResponse:
       type: object
       properties:
@@ -165,6 +211,31 @@ components:
             data:
               type: string
               example: OTP verified successfully.
+
+    VerifyOtpResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Authentication successful.
+        data:
+          type: object
+          properties:
+            tokenType:
+              type: string
+              example: Bearer
+            accessToken:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+            refreshToken:
+              type: string
+              example: refresh-token-value
+            expiresIn:
+              type: integer
+              example: 900
 
     LoginOrRegisterPendingResponse:
       type: object
@@ -193,6 +264,35 @@ components:
                   nullable: true
                   example: Login OTP sent successfully. Please verify OTP to continue.
 
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Request processed successfully.
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 09f6fa4e-1496-4aa7-b32a-dc2f56de4f5b
+            firstName:
+              type: string
+              nullable: true
+              example: Gautam
+            lastName:
+              type: string
+              nullable: true
+              example: Poriya
+            email:
+              type: string
+              format: email
+              example: gautam@example.com
+
     ErrorResponse:
       type: object
       properties:
@@ -210,8 +310,32 @@ components:
           type: string
           format: date-time
           example: "2026-05-13T00:00:00.000Z"
-        goal:
-          type: object
+        audio:
+          allOf:
+            - $ref: "#/components/schemas/GoalHistoryAudio"
+          nullable: true
+
+    GoalHistoryAudio:
+      type: object
+      properties:
+        generationId:
+          type: string
+          format: uuid
+          example: 3b0f39ff-2d43-4f3b-9364-42796a3d5c8d
+        generationStatus:
+          type: string
+          example: audio_processing
+        delivered:
+          type: boolean
+          example: false
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        audioUrl:
+          type: string
+          nullable: true
+          example: https://your-cdn/audio-file.mp3
 
     GodWhisper:
       type: object
@@ -369,15 +493,26 @@ components:
           type: object
           properties:
             currentGoal:
-              allOf:
-                - $ref: "#/components/schemas/Goal"
+              type: object
               nullable: true
-              description: Currently active goal for authenticated user. Null when no active goal exists.
-            latestGeneration:
-              allOf:
-                - $ref: "#/components/schemas/GenerationSnapshot"
-              nullable: true
-              description: Latest generation lifecycle snapshot for the active goal.
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: 1da43024-9754-4868-94be-1d9b8ea3f233
+                dream:
+                  type: string
+                  example: Build Goal-App with clean architecture and daily consistency.
+                reminderTime:
+                  type: string
+                  example: "08:30"
+                reminderEnabled:
+                  type: boolean
+                  example: true
+                latestGeneration:
+                  allOf:
+                    - $ref: "#/components/schemas/GoalSummaryGenerationAudio"
+                  nullable: true
             history:
               type: array
               items:
@@ -397,6 +532,32 @@ components:
             totalPages:
               type: integer
               example: 3
+
+    GoalSummaryGenerationAudio:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3b0f39ff-2d43-4f3b-9364-42796a3d5c8d
+        generationDate:
+          type: string
+          format: date-time
+          example: "2026-05-15T00:00:00.000Z"
+        generationStatus:
+          type: string
+          example: audio_processing
+        delivered:
+          type: boolean
+          example: false
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        audioUrl:
+          type: string
+          nullable: true
+          example: https://your-cdn/audio-file.mp3
 
     GodWhisperListResponse:
       type: object
@@ -604,11 +765,11 @@ paths:
                   description: termCondition => 0 - accepted, 1 - not accepted
       responses:
         "200":
-          description: Registration created or deleted account reactivated and OTP sent
+          description: Registration request processed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginOrRegisterPendingResponse"
+                $ref: "#/components/schemas/RegisterResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "403":
@@ -655,11 +816,11 @@ paths:
                   description: 1 = registration OTP, 2 = login OTP
       responses:
         "200":
-          description: OTP verified
+          description: Authentication successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OtpVerificationSuccessResponse"
+                $ref: "#/components/schemas/VerifyOtpResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "403":
@@ -737,11 +898,11 @@ paths:
                   example: gautam@example.com
       responses:
         "200":
-          description: Login OTP sent or verification required
+          description: Request processed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginOrRegisterPendingResponse"
+                $ref: "#/components/schemas/RegisterResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "403":
@@ -807,7 +968,7 @@ paths:
                   example: refresh-token-value
       responses:
         "200":
-          description: Logged out
+          description: User logout successfully.
           content:
             application/json:
               schema:
@@ -861,11 +1022,11 @@ paths:
                   description: Device timezone used as source of truth for scheduler and notification timing.
       responses:
         "200":
-          description: Profile updated; if `email` was provided, email-update OTP is sent.
+          description: User updated successfully.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageWithUserResponse"
+                $ref: "#/components/schemas/UpdateProfileResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -899,11 +1060,11 @@ paths:
                   example: "1234"
       responses:
         "200":
-          description: Email updated successfully
+          description: User Email updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageWithUserResponse"
+                $ref: "#/components/schemas/VerifyEmailUpdateResponse"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -949,7 +1110,7 @@ paths:
         - bearerAuth: []
       responses:
         "200":
-          description: Account deleted
+          description: User deleted successfully.
           content:
             application/json:
               schema:
@@ -1031,8 +1192,7 @@ paths:
       description: |
         Returns two separate objects in one API response:
         - `data.currentGoal`: currently active goal (or null)
-        - `data.latestGeneration`: latest generation lifecycle snapshot for active goal (or null)
-        - `data.history`: day-wise history in descending date order
+        - `data.history`: day-wise history in descending date order with audio-related generation data
         Pagination (`page`, `limit`) applies only to `data.history`.
       tags:
         - Goals
@@ -1056,7 +1216,7 @@ paths:
             default: 10
       responses:
         "200":
-          description: Current goal and paginated goal history
+          description: Audio-focused current goal and paginated history
           content:
             application/json:
               schema:
@@ -1202,20 +1362,11 @@ paths:
                   example: false
       responses:
         "200":
-          description: Goal reminder updated successfully
+          description: User reminder updated successfully.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: Goal reminder updated successfully.
-                  data:
-                    $ref: "#/components/schemas/Goal"
+                $ref: "#/components/schemas/MessageResponse"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":

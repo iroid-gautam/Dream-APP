@@ -29,6 +29,33 @@ const currentEnv = `${process.env.NODE_ENV || process.env.ENV || ""}`.toLowerCas
 const isDevelopmentEnv = currentEnv === "development";
 
 class AuthService {
+  static resolveNameParts(firstName = "", lastName = "", displayName = "") {
+    const cleanedFirstName = `${firstName || ""}`.trim();
+    const cleanedLastName = `${lastName || ""}`.trim();
+
+    if (cleanedFirstName || cleanedLastName) {
+      return {
+        firstName: cleanedFirstName || null,
+        lastName: cleanedLastName || null,
+      };
+    }
+
+    const normalizedDisplayName = `${displayName || ""}`.trim();
+    if (!normalizedDisplayName) {
+      return { firstName: null, lastName: null };
+    }
+
+    const nameParts = normalizedDisplayName.split(/\s+/).filter(Boolean);
+    if (nameParts.length === 1) {
+      return { firstName: nameParts[0], lastName: null };
+    }
+
+    return {
+      firstName: nameParts[0],
+      lastName: nameParts.slice(1).join(" "),
+    };
+  }
+
   static getSocialProviderConfig(provider) {
     const providerConfig = {
       [AUTH_PROVIDER.GOOGLE]: {
@@ -51,13 +78,11 @@ class AuthService {
 
   static async register(data) {
     const email = data.email.toLowerCase();
-    const fullName = `${data.firstName} ${data.lastName}`.trim();
     let user = await CommonService.findOne(User, { email });
 
     if (user?.isDeleted) {
       user.firstName = data.firstName || user.firstName;
       user.lastName = data.lastName || user.lastName;
-      user.name = fullName || user.name;
       user.termCondition = data.termCondition ?? user.termCondition;
       user.providerType = AUTH_PROVIDER.LOCAL;
       user.providerId = null;
@@ -83,7 +108,6 @@ class AuthService {
     user = await CommonService.createOne(User, {
       firstName: data.firstName,
       lastName: data.lastName,
-      name: fullName,
       email,
       termCondition: data.termCondition ?? 0,
       providerType: AUTH_PROVIDER.LOCAL,
@@ -334,11 +358,6 @@ class AuthService {
       user.timezone = body.timezone;
     }
 
-    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
-    if (fullName) {
-      user.name = fullName;
-    }
-
     if (body.email) {
       if (user.providerType !== AUTH_PROVIDER.LOCAL) {
         throw new ForbiddenException("Profile update is not allowed for this request.");
@@ -493,8 +512,15 @@ class AuthService {
       throw new BadRequestException("Email already in use.");
     }
 
+    const { firstName, lastName } = this.resolveNameParts(
+      null,
+      null,
+      profile.displayName
+    );
+
     user = await CommonService.createOne(User, {
-      name: profile.displayName,
+      firstName,
+      lastName,
       email,
       isVerified: true,
       providerType: provider,

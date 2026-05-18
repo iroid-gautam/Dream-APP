@@ -3,7 +3,6 @@ export default class GetUserResource {
     this.id = data.id;
     this.firstName = data.firstName || null;
     this.lastName = data.lastName || null;
-    this.name = data.name;
     this.email = data.email;
     this.timezone = data.timezone || null;
     this.isVerified = data.isVerified;

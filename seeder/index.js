@@ -1,7 +1,15 @@
 import GodWhisper from "../model/godWhisper";
+import User from "../model/user";
+import DeviceToken from "../model/deviceToken";
+import Goal from "../model/goal";
 import logger from "../src/common/logger";
+import { AUTH_PROVIDER } from "../src/common/constants/constant";
+import CommonService from "../src/common/services/common.service";
 
 const godWhisperLogger = logger.withLabel("GOD_WHISPER_SEED");
+const userSeedLogger = logger.withLabel("USER_SEED");
+const deviceTokenSeedLogger = logger.withLabel("DEVICE_TOKEN_SEED");
+const goalSeedLogger = logger.withLabel("GOAL_SEED");
 
 const defaultGodWhispers = [
   { message: "You were chosen for this chapter, not by accident.", sortOrder: 1 },
@@ -107,9 +115,58 @@ const defaultGodWhispers = [
 ];
 
 const normalizeWhisperMessage = (message = "") => message.trim().toLowerCase();
+const normalizeEmail = (email = "") => email.trim().toLowerCase();
+const formatTimeHHmm = (date = new Date()) => {
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const defaultUsers = Array.from({ length: 50 }, (_, index) => {
+  const sequence = index + 1;
+  return {
+    firstName: `Demo${sequence}`,
+    lastName: "User",
+    email: `demo.user${sequence}@goalapp.local`,
+    timezone: "Asia/Kolkata",
+    termCondition: 1,
+    isVerified: true,
+    providerType: AUTH_PROVIDER.LOCAL,
+    providerId: null,
+    lastLoginProvider: AUTH_PROVIDER.LOCAL,
+    isDeleted: false,
+    deletedAt: null,
+  };
+});
+
+const devicePlatforms = ["android", "ios", "web"];
+
+const buildDefaultDeviceTokens = () => {
+  const defaultDeviceTokens = [];
+
+  for (let index = 0; index < 70; index += 1) {
+    const tokenSequence = index + 1;
+    const userSequence = tokenSequence <= 40
+      ? Math.ceil(tokenSequence / 2)
+      : tokenSequence - 20;
+    const tokenSlot = tokenSequence <= 40 ? ((tokenSequence - 1) % 2) + 1 : 1;
+    const email = `demo.user${userSequence}@goalapp.local`;
+
+    defaultDeviceTokens.push({
+      email,
+      fcmToken: `seed-fcm-demo-user-${userSequence}-token-${tokenSlot}`,
+      deviceId: `seed-device-demo-user-${userSequence}-slot-${tokenSlot}`,
+      platform: devicePlatforms[index % devicePlatforms.length],
+    });
+  }
+
+  return defaultDeviceTokens;
+};
+
+const defaultDeviceTokens = buildDefaultDeviceTokens();
 
 const seedGodWhispers = async () => {
-  const existingWhispers = await GodWhisper.findAll({
+  const existingWhispers = await CommonService.findAll(GodWhisper, {
     attributes: ["id", "message", "isActive", "sortOrder"],
   });
 
@@ -125,7 +182,7 @@ const seedGodWhispers = async () => {
     const existingWhisper = existingWhisperMap.get(normalizedMessage);
 
     if (!existingWhisper) {
-      await GodWhisper.create({
+      await CommonService.createOne(GodWhisper, {
         message: whisper.message,
         sortOrder: whisper.sortOrder,
         isActive: true,
@@ -137,9 +194,14 @@ const seedGodWhispers = async () => {
       existingWhisper.sortOrder !== whisper.sortOrder ||
       existingWhisper.isActive !== true
     ) {
-      existingWhisper.sortOrder = whisper.sortOrder;
-      existingWhisper.isActive = true;
-      await existingWhisper.save();
+      await CommonService.update(
+        GodWhisper,
+        {
+          sortOrder: whisper.sortOrder,
+          isActive: true,
+        },
+        { id: existingWhisper.id }
+      );
     }
   }
 
@@ -148,8 +210,244 @@ const seedGodWhispers = async () => {
   });
 };
 
-const runSeeders = async () => {
-  await seedGodWhispers();
+const seedUsers = async () => {
+  const existingUsers = await CommonService.findAll(User, {
+    attributes: ["id", "email"],
+  });
+
+  const existingUserMap = new Map(
+    existingUsers.map((user) => [normalizeEmail(user.email), user])
+  );
+
+  let createdUsers = 0;
+  let updatedUsers = 0;
+
+  for (const defaultUser of defaultUsers) {
+    const normalizedEmail = normalizeEmail(defaultUser.email);
+    const existingUser = existingUserMap.get(normalizedEmail);
+
+    if (!existingUser) {
+      await CommonService.createOne(User, defaultUser);
+      createdUsers += 1;
+      continue;
+    }
+
+    await CommonService.update(
+      User,
+      {
+        firstName: defaultUser.firstName,
+        lastName: defaultUser.lastName,
+        timezone: defaultUser.timezone,
+        termCondition: defaultUser.termCondition,
+        isVerified: defaultUser.isVerified,
+        providerType: defaultUser.providerType,
+        providerId: defaultUser.providerId,
+        lastLoginProvider: defaultUser.lastLoginProvider,
+        isDeleted: defaultUser.isDeleted,
+        deletedAt: defaultUser.deletedAt,
+      },
+      { id: existingUser.id }
+    );
+    updatedUsers += 1;
+  }
+
+  userSeedLogger.info("User seed completed successfully.", {
+    totalDefaultUsers: defaultUsers.length,
+    createdUsers,
+    updatedUsers,
+  });
 };
 
-export { defaultGodWhispers, seedGodWhispers, runSeeders };
+const seedDeviceTokens = async () => {
+  const seededUserEmails = defaultUsers.map((user) => normalizeEmail(user.email));
+  const seededUsers = await CommonService.findAll(User, {
+    where: {
+      email: seededUserEmails,
+    },
+    attributes: ["id", "email"],
+  });
+
+  const userMapByEmail = new Map(
+    seededUsers.map((user) => [normalizeEmail(user.email), user])
+  );
+
+  const existingTokens = await CommonService.findAll(DeviceToken, {
+    attributes: ["id", "fcmToken"],
+  });
+  const tokenMap = new Map(
+    existingTokens.map((token) => [token.fcmToken, token])
+  );
+
+  let createdTokens = 0;
+  let updatedTokens = 0;
+  let skippedTokens = 0;
+
+  for (const defaultDeviceToken of defaultDeviceTokens) {
+    const mappedUser = userMapByEmail.get(normalizeEmail(defaultDeviceToken.email));
+
+    if (!mappedUser) {
+      skippedTokens += 1;
+      continue;
+    }
+
+    const existingToken = tokenMap.get(defaultDeviceToken.fcmToken);
+
+    if (!existingToken) {
+      await CommonService.createOne(DeviceToken, {
+        userId: mappedUser.id,
+        fcmToken: defaultDeviceToken.fcmToken,
+        platform: defaultDeviceToken.platform,
+        deviceId: defaultDeviceToken.deviceId,
+        isActive: true,
+        lastUsedAt: new Date(),
+      });
+      createdTokens += 1;
+      continue;
+    }
+
+    await CommonService.update(
+      DeviceToken,
+      {
+        userId: mappedUser.id,
+        platform: defaultDeviceToken.platform,
+        deviceId: defaultDeviceToken.deviceId,
+        isActive: true,
+        lastUsedAt: new Date(),
+      },
+      { id: existingToken.id }
+    );
+    updatedTokens += 1;
+  }
+
+  deviceTokenSeedLogger.info("Device token seed completed successfully.", {
+    totalDefaultDeviceTokens: defaultDeviceTokens.length,
+    createdTokens,
+    updatedTokens,
+    skippedTokens,
+  });
+};
+
+const seedGoals = async () => {
+  const seededUserEmails = defaultUsers.map((user) => normalizeEmail(user.email));
+  const seededUsers = await CommonService.findAll(User, {
+    where: {
+      email: seededUserEmails,
+    },
+    attributes: ["id", "firstName", "lastName", "email"],
+  });
+
+  const seededUsersByEmail = new Map(
+    seededUsers.map((user) => [normalizeEmail(user.email), user])
+  );
+
+  const activeWhispers = await CommonService.findAll(GodWhisper, {
+    where: {
+      isActive: true,
+    },
+    attributes: ["id", "sortOrder"],
+    order: [["sortOrder", "ASC"]],
+  });
+
+  const whisperIds = activeWhispers.map((whisper) => whisper.id).filter(Boolean);
+  if (!whisperIds.length) {
+    goalSeedLogger.warn("Goal seed skipped because no active god whispers were found.");
+    return;
+  }
+
+  const reminderTime = formatTimeHHmm(
+    new Date(Date.now() + 32 * 60 * 1000)
+  );
+
+  const activeGoals = await CommonService.findAll(Goal, {
+    where: {
+      userId: seededUsers.map((user) => user.id),
+      isActive: true,
+    },
+    attributes: ["id", "userId"],
+    order: [["createdAt", "DESC"]],
+  });
+
+  const activeGoalByUserId = new Map();
+  activeGoals.forEach((goal) => {
+    if (!activeGoalByUserId.has(goal.userId)) {
+      activeGoalByUserId.set(goal.userId, goal);
+    }
+  });
+
+  let createdGoals = 0;
+  let updatedGoals = 0;
+  let skippedGoals = 0;
+
+  for (let index = 0; index < defaultUsers.length; index += 1) {
+    const seededProfile = defaultUsers[index];
+    const seededUser = seededUsersByEmail.get(normalizeEmail(seededProfile.email));
+
+    if (!seededUser) {
+      skippedGoals += 1;
+      continue;
+    }
+
+    const baseIndex = index % whisperIds.length;
+    const selectedWhisperIds = [
+      whisperIds[baseIndex],
+      whisperIds[(baseIndex + 1) % whisperIds.length],
+      whisperIds[(baseIndex + 2) % whisperIds.length],
+    ];
+
+    const username = `${seededUser.firstName || ""} ${seededUser.lastName || ""}`
+      .trim()
+      || `User ${index + 1}`;
+
+    const goalPayload = {
+      username,
+      dream: `Seeded goal dream ${index + 1} for ${username}`,
+      godWhisperIds: selectedWhisperIds,
+      reminderTime,
+      isActive: true,
+      reminderEnabled: true,
+      activatedAt: new Date(),
+      deactivatedAt: null,
+      lastReminderSentAt: null,
+    };
+
+    const existingGoal = activeGoalByUserId.get(seededUser.id);
+
+    if (!existingGoal) {
+      await CommonService.createOne(Goal, {
+        userId: seededUser.id,
+        ...goalPayload,
+      });
+      createdGoals += 1;
+      continue;
+    }
+
+    await CommonService.update(Goal, goalPayload, { id: existingGoal.id });
+    updatedGoals += 1;
+  }
+
+  goalSeedLogger.info("Goal seed completed successfully.", {
+    totalSeedUsers: defaultUsers.length,
+    createdGoals,
+    updatedGoals,
+    skippedGoals,
+    reminderTime,
+  });
+};
+
+const runSeeders = async () => {
+  await seedGodWhispers();
+  await seedUsers();
+  await seedDeviceTokens();
+  await seedGoals();
+};
+
+export {
+  defaultGodWhispers,
+  defaultUsers,
+  defaultDeviceTokens,
+  seedGodWhispers,
+  seedUsers,
+  seedDeviceTokens,
+  seedGoals,
+  runSeeders,
+};

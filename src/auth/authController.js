@@ -26,12 +26,26 @@ class AuthController {
 
   static async register(req, res) {
     const register = await AuthService.register(req.body);
-    return CustomHelper.success(res, "Registered successfully.", register);
+    const data = {
+      id: register.id,
+      firstName: register.firstName || null,
+      lastName: register.lastName || null,
+      email: register.email,
+    };
+
+    return CustomHelper.success(res, "Request processed successfully.", data);
   }
 
   static async verifyOtp(req, res) {
     const verifyOtp = await AuthService.verifyOtp(req.body);
-    return CustomHelper.success(res, "OTP verified successfully.", verifyOtp);
+    const data = {
+      tokenType: verifyOtp?.authenticate?.tokenType,
+      accessToken: verifyOtp?.authenticate?.accessToken,
+      refreshToken: verifyOtp?.authenticate?.refreshToken,
+      expiresIn: verifyOtp?.authenticate?.expiresIn,
+    };
+
+    return CustomHelper.success(res, "Authentication successful.", data);
   }
 
   static async resendOtp(req, res) {
@@ -44,7 +58,14 @@ class AuthController {
 
   static async login(req, res) {
     const login = await AuthService.login(req.body);
-    return CustomHelper.success(res, "Login successful.", login);
+    const data = {
+      id: login.id,
+      firstName: login.firstName || null,
+      lastName: login.lastName || null,
+      email: login.email,
+    };
+
+    return CustomHelper.success(res, "Request processed successfully.", data);
   }
 
   static async refreshTokenToGenerateAccessToken(req, res) {
@@ -60,7 +81,7 @@ class AuthController {
       authUser: req.user,
     });
 
-    return CustomHelper.success(res, "Logged out successfully.");
+    return CustomHelper.success(res, "User logout successfully.");
   }
 
   static async updateProfile(req, res) {
@@ -69,15 +90,14 @@ class AuthController {
       body: req.body,
     });
 
-    const isEmailUpdateRequested = Boolean(req.body?.email);
+    const data = {
+      id: result.id,
+      firstName: result.firstName || null,
+      lastName: result.lastName || null,
+      email: result.email,
+    };
 
-    return CustomHelper.success(
-      res,
-      isEmailUpdateRequested
-        ? "Profile updated and OTP sent to your new email. Please verify to continue."
-        : "Profile updated successfully.",
-      result
-    );
+    return CustomHelper.success(res, "User updated successfully.", data);
   }
 
   static async verifyEmailUpdate(req, res) {
@@ -86,7 +106,11 @@ class AuthController {
       body: req.body,
     });
 
-    return CustomHelper.success(res, "Email updated successfully.", user);
+    const data = {
+      email: user.email,
+    };
+
+    return CustomHelper.success(res, "User updated successfully.", data);
   }
 
   static async resendEmailUpdateOtp(req, res) {
@@ -105,7 +129,7 @@ class AuthController {
       authUser: req.user,
     });
 
-    return CustomHelper.success(res, "Account deleted successfully.");
+    return CustomHelper.success(res, "User deleted successfully.");
   }
 
   static async oauthCallback(req, res) {
